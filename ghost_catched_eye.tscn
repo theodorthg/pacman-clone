@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://cq503xlfu0aj7"]
+
+[ext_resource type="Texture2D" uid="uid://b5q2811bxhdvf" path="res://assets/ghosts/ghost-eyes-spritesheet.png" id="1_c5fjc"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gfvgi"]
+atlas = ExtResource("1_c5fjc")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_exwuh"]
+atlas = ExtResource("1_c5fjc")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_wcjqx"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gfvgi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_exwuh")
+}],
+"loop": 1,
+"name": &"move_all_directions",
+"speed": 5.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_4chym"]
+radius = 7.0
+height = 14.0
+
+[node name="Ghost_Catched_Eye" type="CharacterBody2D" unique_id=406268461]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1624304943]
+sprite_frames = SubResource("SpriteFrames_wcjqx")
+animation = &"move_all_directions"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1170732227]
+shape = SubResource("CapsuleShape2D_4chym")
+disabled = true

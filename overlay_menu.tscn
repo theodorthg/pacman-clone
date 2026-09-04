@@ -1,0 +1,91 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" uid="uid://baow2afvawkpu" path="res://overlay_menu.gd" id="1_ovl"]
+[ext_resource type="Shader" uid="uid://7hd1m5tmju76" path="res://frosted_glass.gdshader" id="2_shd"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_glass"]
+shader = ExtResource("2_shd")
+shader_parameter/blur = 3.0
+shader_parameter/tint = Color(0.05, 0.05, 0.1, 1)
+shader_parameter/tint_amount = 0.45
+
+[node name="overlay" type="CanvasLayer"]
+layer = 20
+script = ExtResource("1_ovl")
+
+[node name="bbc" type="BackBufferCopy" parent="."]
+copy_mode = 2
+
+[node name="glass" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_glass")
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.35)
+
+[node name="center" type="VBoxContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+alignment = 1
+
+[node name="panel" type="VBoxContainer" parent="center"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="title" type="Label" parent="center/panel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 46
+text = "PAUSED"
+horizontal_alignment = 1
+
+[node name="stats" type="VBoxContainer" parent="center/panel"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="btn_a" type="Button" parent="center/panel"]
+custom_minimum_size = Vector2(190, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 19
+text = "Resume"
+
+[node name="btn_b" type="Button" parent="center/panel"]
+custom_minimum_size = Vector2(190, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 19
+text = "Restart"
+
+[node name="btn_c" type="Button" parent="center/panel"]
+custom_minimum_size = Vector2(190, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 19
+text = "Restart"
+
+[node name="btn_d" type="Button" parent="center/panel"]
+custom_minimum_size = Vector2(190, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 19
+text = "Restart"
+
+[node name="btn_e" type="Button" parent="center/panel"]
+custom_minimum_size = Vector2(190, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 19
+text = "Restart"
+
+[node name="btn_f" type="Button" parent="center/panel"]
+custom_minimum_size = Vector2(190, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 19
+text = "Exit"

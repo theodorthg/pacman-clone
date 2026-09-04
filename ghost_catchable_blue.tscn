@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://p15lhua3mrh7"]
+
+[ext_resource type="Texture2D" uid="uid://i86a7mx0d5em" path="res://assets/ghosts/ghosts-east-spritesheet.png" id="1_vk2d7"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qcg43"]
+atlas = ExtResource("1_vk2d7")
+region = Rect2(0, 160, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gme2k"]
+atlas = ExtResource("1_vk2d7")
+region = Rect2(32, 160, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vlwdc"]
+atlas = ExtResource("1_vk2d7")
+region = Rect2(64, 160, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3kwc3"]
+atlas = ExtResource("1_vk2d7")
+region = Rect2(96, 160, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_wcjqx"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qcg43")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gme2k")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vlwdc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3kwc3")
+}],
+"loop": 1,
+"name": &"move_all_directions",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lxsfl"]
+size = Vector2(21, 23)
+
+[node name="Ghost_Catchable_Blue" type="CharacterBody2D" unique_id=406268461]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1624304943]
+sprite_frames = SubResource("SpriteFrames_wcjqx")
+animation = &"move_all_directions"
+frame_progress = 0.43012783
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1170732227]
+position = Vector2(-0.5, -1.5)
+shape = SubResource("RectangleShape2D_lxsfl")

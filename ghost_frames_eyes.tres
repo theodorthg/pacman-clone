@@ -1,0 +1,25 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://b8mxc7qh6t01j"]
+
+[ext_resource type="Texture2D" uid="uid://b5q2811bxhdvf" path="res://assets/ghosts/ghost-eyes-spritesheet.png" id="1_tex"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e1"]
+atlas = ExtResource("1_tex")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e2"]
+atlas = ExtResource("1_tex")
+region = Rect2(32, 0, 32, 32)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e2")
+}],
+"loop": 1,
+"name": &"move_all_directions",
+"speed": 5.0
+}]
