@@ -1,9 +1,10 @@
 class_name OverlayMenu
 extends CanvasLayer
 
-## Frosted-glass overlay: the pause screen (Resume / Stats / Settings / Restart /
-## Exit), the in-game stats view and the game-over / win screens - all with the
-## same whole-game summary. Runs while the tree is paused.
+## Frosted-glass overlay: the pause screen (Resume / Stats / How to Play /
+## Settings / Restart / Exit), the in-game stats view and the game-over / win
+## screens - all with the same whole-game summary. Runs while the tree is paused.
+## "Exit" is dropped on the Web build (see _open) - a browser tab can't self-close.
 
 signal settings_requested
 signal stats_requested
@@ -25,12 +26,20 @@ var _action: Dictionary = {}   ## Button -> action string
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
-	if OS.has_feature("mobile"):
+	add_to_group(TouchControls.LAYOUT_GROUP)
+	apply_touch_layout()
+	for b in _buttons:
+		b.pressed.connect(_on_button.bind(b))
+
+
+## Idempotent; also the broadcast target for TouchControls.confirm_touch_seen()
+## (see there) - covers Web browsers that don't report touch capability until a
+## real touch has actually happened.
+func apply_touch_layout() -> void:
+	if TouchControls.is_touch_device():
 		var c := $center as BoxContainer
 		c.alignment = BoxContainer.ALIGNMENT_BEGIN
 		c.offset_top = 40.0
-	for b in _buttons:
-		b.pressed.connect(_on_button.bind(b))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -71,6 +80,12 @@ func show_win(stats: Dictionary) -> void:
 
 
 func _open(kind: int, title: String, buttons: Array) -> void:
+	# A browser tab can't close itself - get_tree().quit() just freezes the
+	# canvas - so drop "Exit" on the Web build. "Restart" already covers
+	# "start over from the title screen".
+	if OS.has_feature("web"):
+		buttons = buttons.filter(func(e: Array) -> bool: return e[1] != "exit")
+
 	_kind = kind
 	_title.text = title
 	for c in _stats.get_children():

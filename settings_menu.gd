@@ -60,7 +60,8 @@ var _last_preview_ms: int = 0
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
-	_top_align_on_mobile()
+	add_to_group(TouchControls.LAYOUT_GROUP)
+	apply_touch_layout()
 	_audio = get_node_or_null(^"../audio")
 
 	_play_btn.pressed.connect(_on_play)
@@ -80,9 +81,11 @@ func _ready() -> void:
 
 
 ## On touch devices, pin the menu column to the top so the on-screen keyboard
-## (SpinBox editing) can't cover the lower buttons.
-func _top_align_on_mobile() -> void:
-	if OS.has_feature("mobile"):
+## (SpinBox editing) can't cover the lower buttons. Idempotent; also the
+## broadcast target for TouchControls.confirm_touch_seen() (see there) - covers
+## Web browsers that don't report touch capability until a real touch happens.
+func apply_touch_layout() -> void:
+	if TouchControls.is_touch_device():
 		var c := $center as BoxContainer
 		c.alignment = BoxContainer.ALIGNMENT_BEGIN
 		c.offset_top = 40.0
@@ -152,7 +155,7 @@ func _controls_text() -> String:
 	var keys := (
 		"—  KEYBOARD / GAMEPAD  —\n"
 		+ "Arrow keys or W A S D to turn\n"
-		+ "Esc or the menu button to pause."
+		+ "P, Esc, or the menu button to pause."
 	)
 	var intro := (
 		"Eat every dot to clear the level.\n"

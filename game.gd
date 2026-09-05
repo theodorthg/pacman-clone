@@ -182,6 +182,7 @@ var _ghost_prev_pos: Dictionary = {}
 
 
 func _ready() -> void:
+	add_to_group(TouchControls.LAYOUT_GROUP)
 	_player = get_node(player_path)
 	_pills = get_node(pills_path)
 	_maze = get_node_or_null(maze_path)
@@ -256,21 +257,58 @@ func _on_pause_help_requested() -> void:
 ## On touch devices, pin the 480-wide play field to the TOP of the screen
 ## (KEEP_WIDTH instead of the desktop KEEP letterbox) so the space below the maze
 ## is free for touch play / future on-screen controls. The bottom-anchored HUD
-## boxes are re-pinned just under the maze so they don't drift to the screen edge.
+## boxes are re-pinned just under the maze so they don't drift to the screen edge
+## - but only when the device actually HAS that extra space (see `_has_extra_room`);
+## on a device whose screen is already ~3:4 (most tablets, incl. iPad and the
+## Galaxy Tab S3), KEEP_WIDTH yields zero extra height, so pushing the HUD row
+## below the maze would push it clean off the visible screen. In that case the
+## row is left at its original in-maze position (same as desktop).
+## Also the broadcast target for TouchControls.confirm_touch_seen() - see
+## there. Safe to call repeatedly; every step below is idempotent.
+func apply_touch_layout() -> void:
+	_setup_mobile_layout()
+
+
+const _MAZE_H := 640.0
+## Height (design px) the HUD row + touch strip need below the maze to be worth
+## pushing down there at all; below this, devices near the 3:4 design ratio
+## (tablets) get zero or almost-zero headroom from KEEP_WIDTH.
+const _CLEAR_SPACE_NEEDED := 36.0
+
+
+## The design-space viewport height KEEP_WIDTH will produce, computed straight
+## from the window's physical aspect ratio - reliable the instant it's called,
+## unlike get_viewport().get_visible_rect() which can lag a frame behind a
+## content_scale_aspect change just made.
+func _mobile_viewport_h() -> float:
+	var win := get_window().size
+	if win.x <= 0:
+		return _MAZE_H
+	return 480.0 * float(win.y) / float(win.x)
+
+
 func _setup_mobile_layout() -> void:
-	if not (force_mobile_layout or OS.has_feature("mobile")):
+	if not (force_mobile_layout or TouchControls.is_touch_device()):
 		return
 	get_window().content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP_WIDTH
 
-	const _MAZE_H := 640.0
+	var has_room := _mobile_viewport_h() >= _MAZE_H + _CLEAR_SPACE_NEEDED
 	for box in [_lives_box, _items_box]:
 		if box == null:
 			continue
 		var c := box as Control
-		c.anchor_top = 0.0
-		c.anchor_bottom = 0.0
-		c.offset_top = _MAZE_H + 6.0
-		c.offset_bottom = _MAZE_H + 32.0
+		if has_room:
+			c.anchor_top = 0.0
+			c.anchor_bottom = 0.0
+			c.offset_top = _MAZE_H + 6.0
+			c.offset_bottom = _MAZE_H + 32.0
+		else:
+			# no headroom below the maze (device ~3:4, e.g. most tablets) -
+			# fall back to the desktop's in-maze bottom-anchored position.
+			c.anchor_top = 1.0
+			c.anchor_bottom = 1.0
+			c.offset_top = -44.0
+			c.offset_bottom = -18.0
 
 	var touch := get_node_or_null(touch_controls_path)
 	if touch and touch.has_method("set_enabled"):
