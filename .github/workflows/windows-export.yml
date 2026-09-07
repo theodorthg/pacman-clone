@@ -10,7 +10,7 @@ jobs:
       GODOT_VERSION: "4.7.1"
       GODOT_RELEASE: "4.7.1-stable"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Godot Editor (headless, Linux) herunterladen
         run: |
@@ -38,7 +38,7 @@ jobs:
           $GODOT --headless --path . --export-release "Windows Desktop" build/pacman.exe
 
       - name: Executable als Artefakt hochladen
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: pacman-windows
           path: build/
