@@ -906,7 +906,10 @@ func _save_highscore() -> void:
 		f.close()
 
 
-## Bottom-left lives: one Pac-Man icon per life while there are at most
+## Bottom-left lives: one Pac-Man icon per SPARE life - i.e. `lives - 1`, since
+## the Pac-Man currently on the board is not a spare (arcade convention). So a
+## fresh 3-life game shows 2 icons, and the display is empty while the last
+## Pac-Man is in play. One icon per spare while there are at most
 ## `_LIVES_ICON_MAX` of them; from one more on it collapses to a single icon
 ## followed by an "x 5" / "x 6" ... label; back at or below the limit it shows
 ## the icons again.
@@ -919,7 +922,7 @@ func _refresh_lives() -> void:
 		c.free()
 	var frames: SpriteFrames = _player.get_node("AnimatedSprite2D").sprite_frames
 	var tex: Texture2D = frames.get_frame_texture("move_left", 1)
-	var n := maxi(0, lives)
+	var n := maxi(0, lives - 1)
 	if n <= _LIVES_ICON_MAX:
 		for i in n:
 			_lives_box.add_child(_life_icon(tex))
