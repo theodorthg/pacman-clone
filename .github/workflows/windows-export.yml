@@ -30,12 +30,12 @@ jobs:
           mv _tpl/templates/* "$TPL/"
 
       - name: Assets importieren
-        run: "$GODOT" --headless --path . --import || true
+        run: $GODOT --headless --path . --import || true
 
       - name: Windows-Export bauen
         run: |
           mkdir -p build
-          "$GODOT" --headless --path . --export-release "Windows Desktop" build/pacman.exe
+          $GODOT --headless --path . --export-release "Windows Desktop" build/pacman.exe
 
       - name: Executable als Artefakt hochladen
         uses: actions/upload-artifact@v4
