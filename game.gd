@@ -304,19 +304,50 @@ const _CLEAR_SPACE_NEEDED := 36.0
 ## itself within that leftover strip and enlarge its icons. User feedback:
 ## floating the row away from the maze, deeper into the empty area, read as
 ## MORE disconnected/odd than the original fixed-under-the-maze position, not
-## less. Replaced with this: shift the ENTIRE maze+HUD assembly (tiles,
-## player, ghosts, pills - all plain children of this Node2D's parent, plus
-## the `hud`/`touch_controls`/`overlay`/`settings` CanvasLayers, none of which
-## inherit a parent Node2D's transform and so each need their own `.offset`
-## moved the same amount) down by half the leftover space, splitting it into
-## an even margin above AND below instead of one large gap below. The lives/
-## items row keeps its original fixed position directly under the maze - it
-## moves down WITH the maze as part of the same rigid shift, staying visually
-## attached to it, rather than being repositioned independently.
+## less.
+##
+## Second attempt (superseded, see git history - BROKE THE GAME, caught by
+## the user on-device): shift the whole maze+HUD assembly down by moving
+## `get_parent()` - the `pacman_map` Node2D that `tiles`/`player`/`pills`/
+## the ghosts all sit directly under - by half the leftover space. This
+## visually centred the maze correctly, but a Node2D's `position` is not a
+## purely visual transform: it changes every child's ACTUAL `global_position`,
+## and `MazeGrid.cell_to_world()`/`world_to_cell()` (and therefore all grid
+## movement, collision, and mouse-click-to-cell mapping) assume that
+## `global_position` maps 1:1 onto MazeGrid's own coordinate space with no
+## offset. Shifting the parent desynced the two: the player rendered in one
+## place but MazeGrid math (and a mouse click's resolved cell) still measured
+## from the old, un-shifted origin - "Pac-Man completely lost his bearings in
+## the grid, touch/swipe felt wrong too" (verbatim user report), because the
+## visible position and the logical one no longer agreed.
+##
+## Fixed with a `Camera2D` (`_camera`, a child of `pacman_map`) instead - a
+## camera is a pure VIEW transform: it changes what part of the world the
+## viewport shows, never any node's actual `global_position`, so MazeGrid
+## math and mouse-click mapping (`get_global_mouse_position()` already
+## accounts for the active camera automatically) stay perfectly consistent
+## with what's on screen. Sitting the camera at the maze's own fixed centre,
+## (240, `_MAZE_H`/2) = (240, 320), and leaving it there UNCHANGED regardless
+## of `extra`, already produces exactly the right symmetric centering on its
+## own: a Camera2D maps its own position to the centre of whatever the
+## CURRENT viewport is, so as KEEP_WIDTH's reported viewport height grows
+## with `extra`, Godot's own camera math centres the (fixed-size) maze within
+## it automatically - no per-device offset arithmetic needed for the maze at
+## all (verified algebraically: screen_y for world_y=0 works out to
+## `extra/2` for any `extra`, and to exactly 0 - i.e. unchanged - whenever
+## `extra` is 0, matching the untouched desktop/no-room case).
+##
+## CanvasLayers (`hud`/`touch_controls`/`overlay`/`settings`) ignore a
+## Camera2D entirely - that's what stops UI from scrolling with the camera in
+## any Godot game - so those four still need their own `.offset` moved by
+## `extra * 0.5` by hand below, same as before, to stay visually attached to
+## the (now camera-centred) maze. The lives/items row keeps its original
+## fixed position directly under the maze; it only moves because `hud` (its
+## parent CanvasLayer) does.
 ##
 ## `overlay`/`settings` (the pause/game-over/start/settings/help menus) join
-## the same shift so they slide down with everything else instead of a
-## paused game's blurred, now-lower maze showing through behind a menu box
+## the same offset so they slide down with everything else instead of a
+## paused game's blurred, now-centred maze showing through behind a menu box
 ## still sitting at the old (higher) position. Safe against a menu "falling
 ## out of frame" (user's own concern) by construction, not just luck: on
 ## touch, settings_menu.gd/overlay_menu.gd's own apply_touch_layout() already
@@ -367,15 +398,14 @@ func _setup_mobile_layout() -> void:
 
 	# Split the leftover space evenly above and below instead of leaving it
 	# all below the maze. Plain 2D nodes (tiles/player/ghosts/pills - siblings
-	# of this Game node under the same Node2D parent) shift via that parent's
-	# position; CanvasLayers ignore a parent Node2D's transform entirely, so
-	# `hud` and `touch_controls` need their own `.offset` moved by the same
-	# amount to stay visually attached to the shifted maze. `overlay` and
-	# `settings` are untouched on purpose (see class doc above).
+	# of this Game node under the same Node2D parent) are centred by `_camera`
+	# below (a Camera2D - a pure VIEW transform, so it never touches anyone's
+	# actual global_position/MazeGrid coordinates). CanvasLayers ignore a
+	# Camera2D entirely (by design - that's what keeps UI from scrolling with
+	# the camera), so `hud`/`touch_controls`/`overlay`/`settings` each need
+	# their own `.offset` moved by the same amount to stay visually attached
+	# to the (camera-)centred maze.
 	var shift_y := extra * 0.5 if has_room else 0.0
-	var maze_root := get_parent() as Node2D
-	if maze_root:
-		maze_root.position.y = shift_y
 	if _hud:
 		_hud.offset.y = shift_y
 	for path in [touch_controls_path, overlay_path, settings_path]:
