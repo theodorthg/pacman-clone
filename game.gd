@@ -27,6 +27,7 @@ signal score_changed(new_score: int)
 @export var ready_label_path: NodePath = ^"../hud/ready_label"
 @export var lives_box_path: NodePath = ^"../hud/lives_box"
 @export var items_box_path: NodePath = ^"../hud/items_box"
+@export var hud_path: NodePath = ^"../hud"
 @export var overlay_path: NodePath = ^"../overlay"
 @export var settings_path: NodePath = ^"../settings"
 @export var sound_path: NodePath = ^"../audio"
@@ -136,6 +137,7 @@ var _level_label: Label
 var _ready_label: Label
 var _lives_box: Node
 var _items_box: Node
+var _hud: CanvasLayer
 var _overlay: Node
 var _settings: Node
 var _sound: Node
@@ -198,6 +200,7 @@ func _ready() -> void:
 	_highscore_label = get_node_or_null(highscore_label_path)
 	_level_label = get_node_or_null(level_label_path)
 	_ready_label = get_node_or_null(ready_label_path)
+	_hud = get_node_or_null(hud_path)
 	_lives_box = get_node_or_null(lives_box_path)
 	_items_box = get_node_or_null(items_box_path)
 	_overlay = get_node_or_null(overlay_path)
@@ -268,13 +271,16 @@ func _on_pause_help_requested() -> void:
 
 ## On touch devices, pin the 480-wide play field to the TOP of the screen
 ## (KEEP_WIDTH instead of the desktop KEEP letterbox) so the space below the maze
-## is free for touch play / future on-screen controls. The bottom-anchored HUD
-## boxes are re-pinned just under the maze so they don't drift to the screen edge
-## - but only when the device actually HAS that extra space (see `_has_extra_room`);
-## on a device whose screen is already ~3:4 (most tablets, incl. iPad and the
-## Galaxy Tab S3), KEEP_WIDTH yields zero extra height, so pushing the HUD row
-## below the maze would push it clean off the visible screen. In that case the
-## row is left at its original in-maze position (same as desktop).
+## is free for touch play / future on-screen controls, THEN - if that leaves a
+## lot of it - shift the whole maze+HUD assembly down to vertically CENTRE it
+## (see `_center_shift_y` below) instead of leaving all the leftover space in
+## one lump at the bottom. The bottom-anchored HUD boxes are re-pinned just
+## under the maze so they don't drift to the screen edge - but only when the
+## device actually HAS that extra space; on a device whose screen is already
+## ~3:4 (most tablets, incl. iPad and the Galaxy Tab S3), KEEP_WIDTH yields
+## zero extra height, so pushing the HUD row below the maze would push it
+## clean off the visible screen. In that case the row is left at its original
+## in-maze position (same as desktop), and there's nothing to centre either.
 ## Also the broadcast target for TouchControls.confirm_touch_seen() - see
 ## there. Safe to call repeatedly; every step below is idempotent.
 func apply_touch_layout() -> void:
@@ -286,20 +292,33 @@ const _MAZE_H := 640.0
 ## pushing down there at all; below this, devices near the 3:4 design ratio
 ## (tablets) get zero or almost-zero headroom from KEEP_WIDTH.
 const _CLEAR_SPACE_NEEDED := 36.0
-const _HUD_ROW_H := 26.0
 
 ## The maze's own pixel size is capped by the device WIDTH (KEEP_WIDTH pins
 ## the 480-wide design canvas to it 1:1) - unlike Tetris's/Galaga's more
 ## elastic playfields, a hand-authored maze can't grow to fill extra HEIGHT
 ## without changing its aspect ratio, which would distort it. So on a very
 ## tall/narrow phone (~2.2:1, common in this user's device set) there can be
-## 300-500 design px of untouched space below the maze - the lives/items row
-## alone (a fixed 26px band right under the maze, previous behaviour) only
-## ever used a sliver of it, leaving the rest looking like an accident rather
-## than a deliberate bezel. Two things below make it feel more intentional:
-## the row is vertically CENTRED in the leftover strip instead of hugging its
-## top edge, and its icons scale up somewhat on the roomiest devices (see
-## `_hud_icon_scale`, used by `_life_icon()` / `_rebuild_level_icons()`).
+## 300-500 design px of untouched space below the maze.
+##
+## First attempt (superseded, see git history): re-centre the lives/items row
+## itself within that leftover strip and enlarge its icons. User feedback:
+## floating the row away from the maze, deeper into the empty area, read as
+## MORE disconnected/odd than the original fixed-under-the-maze position, not
+## less. Replaced with this: shift the ENTIRE maze+HUD assembly (tiles,
+## player, ghosts, pills - all plain children of this Node2D's parent, plus
+## the `hud` and `touch_controls` CanvasLayers, which don't inherit a parent
+## Node2D's transform and so need their own `.offset` moved the same amount)
+## down by half the leftover space, splitting it into an even margin above
+## AND below instead of one large gap below. The lives/items row keeps its
+## original fixed position directly under the maze - it moves down WITH the
+## maze as part of the same rigid shift, staying visually attached to it,
+## rather than being repositioned independently. Menus (`overlay`/`settings`)
+## are left alone; they already centre themselves in the full viewport and
+## aren't meant to visually align with maze geometry.
+##
+## Icons still scale up modestly on the roomiest devices (see
+## `_hud_icon_scale`, used by `_life_icon()` / `_rebuild_level_icons()`) -
+## that part of the earlier change wasn't the one criticised.
 const _HUD_SCALE_MAX := 1.5
 ## Extra design-px below the maze at which `_HUD_SCALE_MAX` is reached -
 ## tuned against the ~2.2:1 phones in this user's fleet (OPPO Find X2 Pro /
@@ -332,8 +351,23 @@ func _setup_mobile_layout() -> void:
 	var rescale_icons := not is_equal_approx(new_scale, _hud_icon_scale)
 	_hud_icon_scale = new_scale
 
-	var row_h := _HUD_ROW_H * _hud_icon_scale
-	var row_center_y := _MAZE_H + extra * 0.5
+	# Split the leftover space evenly above and below instead of leaving it
+	# all below the maze. Plain 2D nodes (tiles/player/ghosts/pills - siblings
+	# of this Game node under the same Node2D parent) shift via that parent's
+	# position; CanvasLayers ignore a parent Node2D's transform entirely, so
+	# `hud` and `touch_controls` need their own `.offset` moved by the same
+	# amount to stay visually attached to the shifted maze. `overlay` and
+	# `settings` are untouched on purpose (see class doc above).
+	var shift_y := extra * 0.5 if has_room else 0.0
+	var maze_root := get_parent() as Node2D
+	if maze_root:
+		maze_root.position.y = shift_y
+	if _hud:
+		_hud.offset.y = shift_y
+	var touch_layer := get_node_or_null(touch_controls_path) as CanvasLayer
+	if touch_layer:
+		touch_layer.offset.y = shift_y
+
 	for box in [_lives_box, _items_box]:
 		if box == null:
 			continue
@@ -341,8 +375,8 @@ func _setup_mobile_layout() -> void:
 		if has_room:
 			c.anchor_top = 0.0
 			c.anchor_bottom = 0.0
-			c.offset_top = row_center_y - row_h * 0.5
-			c.offset_bottom = row_center_y + row_h * 0.5
+			c.offset_top = _MAZE_H + 6.0
+			c.offset_bottom = _MAZE_H + 32.0
 		else:
 			# no headroom below the maze (device ~3:4, e.g. most tablets) -
 			# fall back to the desktop's in-maze bottom-anchored position.
