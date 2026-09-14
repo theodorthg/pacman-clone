@@ -286,6 +286,27 @@ const _MAZE_H := 640.0
 ## pushing down there at all; below this, devices near the 3:4 design ratio
 ## (tablets) get zero or almost-zero headroom from KEEP_WIDTH.
 const _CLEAR_SPACE_NEEDED := 36.0
+const _HUD_ROW_H := 26.0
+
+## The maze's own pixel size is capped by the device WIDTH (KEEP_WIDTH pins
+## the 480-wide design canvas to it 1:1) - unlike Tetris's/Galaga's more
+## elastic playfields, a hand-authored maze can't grow to fill extra HEIGHT
+## without changing its aspect ratio, which would distort it. So on a very
+## tall/narrow phone (~2.2:1, common in this user's device set) there can be
+## 300-500 design px of untouched space below the maze - the lives/items row
+## alone (a fixed 26px band right under the maze, previous behaviour) only
+## ever used a sliver of it, leaving the rest looking like an accident rather
+## than a deliberate bezel. Two things below make it feel more intentional:
+## the row is vertically CENTRED in the leftover strip instead of hugging its
+## top edge, and its icons scale up somewhat on the roomiest devices (see
+## `_hud_icon_scale`, used by `_life_icon()` / `_rebuild_level_icons()`).
+const _HUD_SCALE_MAX := 1.5
+## Extra design-px below the maze at which `_HUD_SCALE_MAX` is reached -
+## tuned against the ~2.2:1 phones in this user's fleet (OPPO Find X2 Pro /
+## OnePlus 12), which land right around this much leftover space.
+const _HUD_SCALE_FULL_EXTRA := 420.0
+
+var _hud_icon_scale: float = 1.0
 
 
 ## The design-space viewport height KEEP_WIDTH will produce, computed straight
@@ -304,7 +325,15 @@ func _setup_mobile_layout() -> void:
 		return
 	get_window().content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP_WIDTH
 
-	var has_room := _mobile_viewport_h() >= _MAZE_H + _CLEAR_SPACE_NEEDED
+	var extra := maxf(0.0, _mobile_viewport_h() - _MAZE_H)
+	var has_room := extra >= _CLEAR_SPACE_NEEDED
+	var t := clampf((extra - _CLEAR_SPACE_NEEDED) / (_HUD_SCALE_FULL_EXTRA - _CLEAR_SPACE_NEEDED), 0.0, 1.0)
+	var new_scale := lerpf(1.0, _HUD_SCALE_MAX, t) if has_room else 1.0
+	var rescale_icons := not is_equal_approx(new_scale, _hud_icon_scale)
+	_hud_icon_scale = new_scale
+
+	var row_h := _HUD_ROW_H * _hud_icon_scale
+	var row_center_y := _MAZE_H + extra * 0.5
 	for box in [_lives_box, _items_box]:
 		if box == null:
 			continue
@@ -312,8 +341,8 @@ func _setup_mobile_layout() -> void:
 		if has_room:
 			c.anchor_top = 0.0
 			c.anchor_bottom = 0.0
-			c.offset_top = _MAZE_H + 6.0
-			c.offset_bottom = _MAZE_H + 32.0
+			c.offset_top = row_center_y - row_h * 0.5
+			c.offset_bottom = row_center_y + row_h * 0.5
 		else:
 			# no headroom below the maze (device ~3:4, e.g. most tablets) -
 			# fall back to the desktop's in-maze bottom-anchored position.
@@ -321,6 +350,14 @@ func _setup_mobile_layout() -> void:
 			c.anchor_bottom = 1.0
 			c.offset_top = -44.0
 			c.offset_bottom = -18.0
+
+	# Icons are built at a fixed design size (_life_icon() / _rebuild_level_icons()
+	# read _hud_icon_scale directly) - only rebuild them when the scale actually
+	# changed, so a repeat call (e.g. a window resize) doesn't needlessly
+	# re-free/re-add every icon every frame.
+	if rescale_icons:
+		_refresh_lives()
+		_rebuild_level_icons()
 
 	var touch := get_node_or_null(touch_controls_path)
 	if touch and touch.has_method("set_enabled"):
@@ -942,7 +979,7 @@ func _refresh_lives() -> void:
 		_lives_box.add_child(_life_icon(tex))
 		var lbl := Label.new()
 		lbl.text = "x %d" % n
-		lbl.add_theme_font_size_override("font_size", 16)
+		lbl.add_theme_font_size_override("font_size", roundi(16 * _hud_icon_scale))
 		lbl.add_theme_color_override("font_color", Color(1, 1, 1))
 		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		_lives_box.add_child(lbl)
@@ -953,7 +990,7 @@ func _life_icon(tex: Texture2D) -> TextureRect:
 	icon.texture = tex
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.custom_minimum_size = Vector2(22, 22)
+	icon.custom_minimum_size = Vector2(22, 22) * _hud_icon_scale
 	return icon
 
 
@@ -978,7 +1015,7 @@ func _rebuild_level_icons() -> void:
 		icon.texture = tex
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.custom_minimum_size = Vector2(20, 20)
+		icon.custom_minimum_size = Vector2(20, 20) * _hud_icon_scale
 		_items_box.add_child(icon)
 
 
