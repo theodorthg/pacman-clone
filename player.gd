@@ -16,6 +16,15 @@ extends CharacterBody2D
 ##
 ## Touch: a swipe anywhere on the screen queues that direction, exactly like a
 ## key press (works for the "press once, turn at the next chance" model).
+##
+## Mouse (desktop only, see `TouchControls.is_touch_device()`): click a maze
+## tile and Pac-Man paths there on his own via `MazeGrid.find_path()` - one
+## direction queued at a time, same "turn at the next chance" mechanism as a
+## key press, so a click also aims ahead of arrival. The path is dumb (no
+## ghost avoidance) - crossing multiple junctions unsupervised can run him
+## into a ghost on purpose, per design; a fresh click at any time replaces
+## the remaining path outright, which is how you dodge danger reactively.
+## Any real key press or swipe cancels an in-progress path (manual wins).
 
 signal died
 ## Emitted every time the player settles on a new tile centre (grid space).
@@ -61,6 +70,9 @@ var _touch_id: int = -1                 ## finger currently tracked for a swipe
 var _touch_start: Vector2 = Vector2.ZERO
 var _swipe_done: bool = false           ## this touch already fired a direction
 
+var _mouse_path: Array[Vector2i] = []   ## remaining step directions from a mouse click
+var _queued_from_path: bool = false     ## _queued was refilled from _mouse_path, not chosen live
+
 
 func _ready() -> void:
 	_sprite.speed_scale = anim_speed_scale
@@ -79,8 +91,16 @@ func _physics_process(delta: float) -> void:
 
 	_poll_input()
 
-	# A 180° turn is always possible, even mid-tile.
-	if _queued != Vector2i.ZERO and _dir != Vector2i.ZERO and _queued == -_dir:
+	# A 180° turn is always possible, even mid-tile - but only for a direction
+	# the human actually chose right now. A mouse-path direction is planned
+	# relative to `_target` (the tile the path assumes it will land on next);
+	# an instant reversal here would swap `_cell`/`_target` (see `_reverse()`)
+	# and land the player back on `_cell` instead, one tile short of every
+	# later step in the path. A path-driven reversal is applied at the tile
+	# centre instead (normal queued-turn handling in `_advance()`), which
+	# matches where the path actually expects it.
+	if _queued != Vector2i.ZERO and _dir != Vector2i.ZERO and _queued == -_dir \
+			and not _queued_from_path:
 		_reverse()
 
 	if _moving:
@@ -99,15 +119,24 @@ func _poll_input() -> void:
 	for action in _ACTION_DIR:
 		if Input.is_action_just_pressed(action):
 			_queued = _ACTION_DIR[action]
+			_queued_from_path = false
 			_steered = true
+			_mouse_path.clear()
 			return
 	if _queued != Vector2i.ZERO:
 		return
 	for action in _ACTION_DIR:
 		if Input.is_action_pressed(action):
 			_queued = _ACTION_DIR[action]
+			_queued_from_path = false
 			_steered = true
+			_mouse_path.clear()
 			return
+	# Nothing pressed and no turn waiting: keep following a mouse-click path,
+	# one queued direction at a time, if one is still in progress.
+	if not _mouse_path.is_empty():
+		_queued = _mouse_path.pop_front()
+		_queued_from_path = true
 
 
 ## Touch swipes -> queued direction. A drag fires as soon as it passes the
@@ -125,6 +154,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventScreenDrag and event.index == _touch_id and not _swipe_done:
 		if _swipe(event.position - _touch_start, swipe_min_distance):
 			_swipe_done = true
+	elif event is InputEventMouseButton and event.pressed \
+			and event.button_index == MOUSE_BUTTON_LEFT and not TouchControls.is_touch_device():
+		_handle_mouse_click(get_global_mouse_position())
 
 
 func _swipe(delta: Vector2, min_dist: float) -> bool:
@@ -142,7 +174,30 @@ func _swipe(delta: Vector2, min_dist: float) -> bool:
 func steer(dir: Vector2i) -> void:
 	if dir == Vector2i.ZERO:
 		return
+	_mouse_path.clear()
 	_queued = dir
+	_queued_from_path = false
+	_steered = true
+
+
+## Left-click on a maze tile: path there via MazeGrid.find_path(), queuing the
+## first step immediately (same "aim ahead" feel as a key press) and letting
+## `_poll_input()` feed the rest one junction at a time. Pathing starts from
+## wherever the player is already committed to go (`_target` if mid-glide,
+## else `_cell`) so the new route picks up exactly where the current step
+## will land. A click on an unreachable spot (wall, HUD band) snaps to the
+## nearest tile the player may stand on.
+func _handle_mouse_click(world_pos: Vector2) -> void:
+	if _dead or _frozen:
+		return
+	var goal := MazeGrid.nearest_free_for_player(MazeGrid.world_to_cell(world_pos))
+	var start := _target if _moving else _cell
+	var path := MazeGrid.find_path(start, goal)
+	if path.is_empty():
+		return
+	_mouse_path = path
+	_queued = _mouse_path.pop_front()
+	_queued_from_path = true
 	_steered = true
 
 
@@ -237,6 +292,8 @@ func die() -> void:
 	_moving = false
 	_dir = Vector2i.ZERO
 	_queued = Vector2i.ZERO
+	_queued_from_path = false
+	_mouse_path.clear()
 	velocity = Vector2.ZERO
 	_sprite.play("death_animation")
 	died.emit()
@@ -251,6 +308,8 @@ func reset(to_cell := Vector2i(-1, -1)) -> void:
 	_steered = false
 	_dir = Vector2i.ZERO
 	_queued = Vector2i.ZERO
+	_queued_from_path = false
+	_mouse_path.clear()
 	_facing = Vector2i.LEFT
 	if to_cell == Vector2i(-1, -1):
 		global_position = _home_pos

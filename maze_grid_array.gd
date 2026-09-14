@@ -138,6 +138,62 @@ static func nearest_free(cell: Vector2i) -> Vector2i:
 	return cell
 
 
+## Same as [method nearest_free], but restricted to tiles the player may
+## actually stand on (excludes the ghost house). Used to snap a mouse click
+## to a reachable destination.
+static func nearest_free_for_player(cell: Vector2i) -> Vector2i:
+	if is_free_for_player(cell):
+		return cell
+	for r in range(1, maxi(COLS, ROWS)):
+		for y in range(cell.y - r, cell.y + r + 1):
+			for x in range(cell.x - r, cell.x + r + 1):
+				var c := Vector2i(x, y)
+				if is_free_for_player(c):
+					return c
+	return cell
+
+
+## Shortest path from [param start] to [param goal] (both grid space, both
+## required to be free-for-player) as a list of step directions - BFS over the
+## walkable grid, side-tunnel wraparound included as an edge. Empty array if
+## start == goal or no path exists (should not happen on this fully-connected
+## maze, but guards against an unreachable/invalid goal).
+static func find_path(start: Vector2i, goal: Vector2i) -> Array[Vector2i]:
+	var path: Array[Vector2i] = []
+	if start == goal or not is_free_for_player(start) or not is_free_for_player(goal):
+		return path
+	const DIRS: Array[Vector2i] = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
+	var came_from := {}   ## cell -> [prev_cell, dir_taken]
+	var visited := {start: true}
+	var queue: Array[Vector2i] = [start]
+	var head := 0
+	while head < queue.size():
+		var cur: Vector2i = queue[head]
+		head += 1
+		if cur == goal:
+			break
+		for d in DIRS:
+			var nxt: Vector2i
+			if is_tunnel_exit(cur, d):
+				nxt = Vector2i(COLS - 1, cur.y) if d == Vector2i.LEFT else Vector2i(0, cur.y)
+			else:
+				nxt = cur + d
+			if visited.has(nxt) or not is_free_for_player(nxt):
+				continue
+			visited[nxt] = true
+			came_from[nxt] = [cur, d]
+			queue.append(nxt)
+	if not came_from.has(goal):
+		return path
+	var node := goal
+	while node != start:
+		var step: Array = came_from[node]
+		path.append(step[1])
+		node = step[0]
+	path.reverse()
+	return path
+
+
 ## Default pill layout for this maze: { Vector2i(grid cell): PILL_SMALL | PILL_BIG }.
 ## A dot on every walkable tile except the ghost house, the tunnel mouths and the
 ## player's start strip; the four corner tiles become power pills.
