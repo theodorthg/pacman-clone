@@ -1,11 +1,15 @@
 class_name TouchControls
 extends CanvasLayer
 
-## Touch HUD, shown only on touch devices (turned on by
-## `game._setup_mobile_layout()`):
-##   * a non-interactive swipe indicator, in the dead strip between the SCORE
-##     and HIGH SCORE labels
-##   * a pause button, in the dead strip between HIGH SCORE and LEVEL
+## Header-band HUD, in the dead strip between the maze's label row and its top
+## wall:
+##   * a non-interactive swipe indicator, between the SCORE and HIGH SCORE
+##     labels - touch devices only, shown once `game._setup_mobile_layout()`
+##     turns it on (see `set_enabled`)
+##   * a pause button, between HIGH SCORE and LEVEL - shown on EVERY platform
+##     whenever the round is playable, independent of `set_enabled`/touch:
+##     mouse-click steering (`Player._handle_mouse_click`) is available
+##     exactly when touch isn't, so a clickable pause button belongs there too
 ## Both sit in the reserved top scoreboard band (rows above the maze proper,
 ## y 0-112 in design px) rather than below the maze - that band is at a FIXED
 ## position in the 480-wide design canvas on every device, so unlike a strip
@@ -105,13 +109,19 @@ func set_enabled(on: bool) -> void:
 
 
 func _process(_dt: float) -> void:
-	var want := _enabled and not get_tree().paused
-	if want != visible:
-		visible = want
+	var playing := not get_tree().paused
+	# The pause button is useful on every input method - mouse-click steering
+	# is available exactly when touch isn't (see `Player._handle_mouse_click`),
+	# so unlike the swipe compass below it is never gated on `_enabled`/touch.
+	var show_pause := playing
+	var show_compass := _enabled and playing
+	visible = show_pause or show_compass
+	_pause.visible = show_pause
+	_indicator.visible = show_compass
 	if not visible:
 		return
 	_layout()
-	if _player and _player.has_method("desired_dir"):
+	if show_compass and _player and _player.has_method("desired_dir"):
 		_indicator.set_dir(_player.desired_dir())
 
 

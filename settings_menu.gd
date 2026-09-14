@@ -47,10 +47,61 @@ enum Mode { START, PAUSE }
 
 @onready var _help: VBoxContainer = $center/help_panel
 @onready var _help_btn: Button = $center/root/help_btn
+@onready var _help_page_title: Label = $center/help_panel/page_title
 @onready var _help_body: Label = $center/help_panel/body
+@onready var _help_prev: Button = $center/help_panel/nav/prev_btn
+@onready var _help_next: Button = $center/help_panel/nav/next_btn
+@onready var _help_dots: HBoxContainer = $center/help_panel/nav/dots
 @onready var _help_back: Button = $center/help_panel/back_btn
 
+## One slide per input method, in the order a newcomer should read them -
+## mouse before touch, per the design guideline that new games explain mouse
+## control as a first-class option. Kept as separate pages (not one big wall
+## of text) so each control scheme gets focus, and so the deck can grow
+## per-device without reshuffling a single paragraph.
+const HELP_PAGES: Array[Dictionary] = [
+	{"title": "GOAL", "body":
+		"Eat every dot to clear the level.\n"
+		+ "The 4 big pills turn the ghosts blue —\n"
+		+ "chase them for bonus points.\n"
+		+ "Fruit appears twice per level."},
+	{"title": "MOUSE — CLICK TO MOVE", "body":
+		"Click anywhere in the maze and\n"
+		+ "Pac-Man finds his own way there,\n"
+		+ "turning every corner along the route.\n"
+		+ "A click also aims ahead, like a key\n"
+		+ "press — no need to wait for the\n"
+		+ "next junction."},
+	{"title": "MOUSE — CHANGE YOUR MIND", "body":
+		"The route is plotted blind — it does\n"
+		+ "not dodge ghosts, so clicking far\n"
+		+ "away can walk you right into one.\n"
+		+ "Click again at any time to reroute\n"
+		+ "from wherever you are — that's how\n"
+		+ "you steer around danger."},
+	{"title": "KEYBOARD / GAMEPAD", "body":
+		"Arrow keys or WASD to turn.\n"
+		+ "P, Esc, or the pause button to pause.\n"
+		+ "A key press aims ahead too, just\n"
+		+ "like a mouse click."},
+	{"title": "TOUCH", "body":
+		"Swipe anywhere to turn (short\n"
+		+ "flicks work too).\n"
+		+ "The compass shows your steering\n"
+		+ "direction.\n"
+		+ "Tap  ❚❚  near the top to pause."},
+	{"title": "SETTINGS", "body":
+		"Tune the difficulty there: number\n"
+		+ "of lives, Pac-Man / ghost speed,\n"
+		+ "points per dot, extra-life\n"
+		+ "thresholds — plus per-sound volume."},
+]
+
 var _mode: int = Mode.START
+var _help_page: int = 0
+var _help_touch_id: int = -1
+var _help_touch_x: float = 0.0
+const _HELP_SWIPE_MIN := 40.0
 var _vol_slider: Dictionary = {}   ## sound key -> HSlider
 var _vol_label: Dictionary = {}    ## sound key -> Label ("NN%")
 var _audio: Node
@@ -69,9 +120,11 @@ func _ready() -> void:
 	_sound_btn.pressed.connect(_show_sound)
 	_panel_back.pressed.connect(_back_from_params)
 	_sound_back.pressed.connect(_show_params)
-	_help_btn.pressed.connect(func() -> void: _show(_help))
+	_help_btn.pressed.connect(_open_help)
 	_help_back.pressed.connect(_back_from_help)
-	_help_body.text = _controls_text()
+	_help_prev.pressed.connect(func() -> void: _help_go(-1))
+	_help_next.pressed.connect(func() -> void: _help_go(1))
+	_help_body.gui_input.connect(_on_help_body_input)
 
 	for sb in [_lives, _dot_points, _first_extra, _extra_gap, _gap_mult, _pac_speed, _ghost_speed]:
 		sb.value_changed.connect(_on_param_changed)
@@ -92,7 +145,11 @@ func apply_touch_layout() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not visible or not event.is_action_pressed("pause"):
+	if not visible:
+		return
+	if _help.visible:
+		_help_input(event)
+	if not event.is_action_pressed("pause"):
 		return
 	get_viewport().set_input_as_handled()
 	if _sound.visible:
@@ -120,7 +177,7 @@ func open_start() -> void:
 func open_help_from_pause() -> void:
 	_mode = Mode.PAUSE
 	visible = true
-	_show(_help)
+	_open_help()
 
 
 ## From the pause menu: jump straight to the parameter panel. The tree is
@@ -144,35 +201,68 @@ func _show(panel: Control) -> void:
 		first.call_deferred("grab_focus")
 
 
-## Control help, ordered by what the device most likely uses.
-func _controls_text() -> String:
-	var touch := (
-		"—  TOUCH  —\n"
-		+ "Swipe anywhere to turn (short flicks too).\n"
-		+ "The compass shows the steering-direction .\n"
-		+ "Tap  ❚❚  at the bottom right to pause."
-	)
-	var keys := (
-		"—  KEYBOARD / GAMEPAD  —\n"
-		+ "Arrow keys or W A S D to turn\n"
-		+ "P, Esc, or the menu button to pause."
-	)
-	var intro := (
-		"Eat every dot to clear the level.\n"
-		+ "The 4 big pills turn the ghosts blue —\n"
-		+ "chase them for bonus points.\n"
-		+ "You can hit keys (once)/swipe always in advance.\n"
-		+ "Fruit appears twice per level.\n\n"
-	)
-	var tune := (
-		"\n\n—  SETTINGS  —\n"
-		+ "Tune the difficulty there: number of lives,\n"
-		+ "Pac-Man / ghost speed, points per dot,\n"
-		+ "extra-life thresholds — plus per-sound volume."
-	)
-	if DisplayServer.is_touchscreen_available():
-		return intro + touch + "\n\n" + keys + tune
-	return intro + keys + "\n\n" + touch + tune
+## Open the help deck fresh at page 0 - whether from the start-screen "How to
+## Play" or the pause menu's, a returning player shouldn't land mid-deck from
+## last time.
+func _open_help() -> void:
+	_show(_help)
+	_help_page = 0
+	_help_go(0)
+
+
+## Advance the help deck by [param delta] pages (0 to (re)draw the current one),
+## wrapping past either end - the last page's "next" goes back to the first and
+## vice versa, so there's always something to click toward.
+func _help_go(delta: int) -> void:
+	_help_page = wrapi(_help_page + delta, 0, HELP_PAGES.size())
+	var page: Dictionary = HELP_PAGES[_help_page]
+	_help_page_title.text = str(page.get("title", ""))
+	_help_body.text = str(page.get("body", ""))
+	_refresh_help_dots()
+
+
+func _refresh_help_dots() -> void:
+	for c in _help_dots.get_children():
+		c.free()
+	for i in HELP_PAGES.size():
+		var d := ColorRect.new()
+		d.custom_minimum_size = Vector2(7, 7)
+		d.color = Color(1, 0.95, 0.3, 1) if i == _help_page else Color(1, 1, 1, 0.25)
+		d.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_help_dots.add_child(d)
+
+
+## Click anywhere on the page text to advance too - the third way to flip
+## pages, alongside the ‹ / › buttons and swipe/arrow-keys below.
+func _on_help_body_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_help_go(1)
+		_help_body.accept_event()
+	elif event is InputEventScreenTouch and event.pressed:
+		_help_go(1)
+		_help_body.accept_event()
+
+
+## Swipe / arrow-key paging while the help deck is open. Raw keycodes (not the
+## move_left/right actions, which are also bound to these same keys) so this
+## never fights the game's own steering bindings.
+func _help_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		match event.keycode:
+			KEY_LEFT, KEY_A:
+				_help_go(-1); get_viewport().set_input_as_handled()
+			KEY_RIGHT, KEY_D:
+				_help_go(1); get_viewport().set_input_as_handled()
+	elif event is InputEventScreenTouch:
+		if event.pressed:
+			_help_touch_id = event.index
+			_help_touch_x = event.position.x
+		elif event.index == _help_touch_id:
+			_help_touch_id = -1
+			var dx: float = event.position.x - _help_touch_x
+			if absf(dx) > _HELP_SWIPE_MIN:
+				_help_go(-1 if dx > 0.0 else 1)   # swipe right -> previous page
+				get_viewport().set_input_as_handled()
 
 
 func _show_params() -> void:

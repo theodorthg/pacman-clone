@@ -25,6 +25,8 @@ alignment = 1
 [node name="title" type="Label" parent="center/root"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 40
 text = "PAC-MAN"
 horizontal_alignment = 1
@@ -60,6 +62,8 @@ alignment = 1
 [node name="title" type="Label" parent="center/panel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 26
 text = "SETTINGS"
 horizontal_alignment = 1
@@ -182,6 +186,8 @@ alignment = 1
 [node name="title" type="Label" parent="center/sound_panel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 26
 text = "SOUND VOLUME"
 horizontal_alignment = 1
@@ -210,17 +216,57 @@ alignment = 1
 [node name="title" type="Label" parent="center/help_panel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 26
 text = "HOW TO PLAY"
 horizontal_alignment = 1
 
-[node name="body" type="Label" parent="center/help_panel"]
+[node name="page_title" type="Label" parent="center/help_panel"]
 layout_mode = 2
-theme_override_constants/line_spacing = 5
+theme_override_colors/font_color = Color(0.55, 0.85, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 19
+text = "GOAL"
+horizontal_alignment = 1
+
+[node name="body" type="Label" parent="center/help_panel"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+mouse_filter = 0
+theme_override_constants/line_spacing = 6
 theme_override_font_sizes/font_size = 15
 text = "Eat every dot to clear the level."
 horizontal_alignment = 1
+vertical_alignment = 1
 autowrap_mode = 2
+
+[node name="nav" type="HBoxContainer" parent="center/help_panel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="prev_btn" type="Button" parent="center/help_panel/nav"]
+custom_minimum_size = Vector2(56, 44)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 22
+text = "‹"
+
+[node name="dots" type="HBoxContainer" parent="center/help_panel/nav"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="next_btn" type="Button" parent="center/help_panel/nav"]
+custom_minimum_size = Vector2(56, 44)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 22
+text = "›"
 
 [node name="back_btn" type="Button" parent="center/help_panel"]
 custom_minimum_size = Vector2(200, 42)
