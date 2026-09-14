@@ -52,8 +52,8 @@ enum Mode { START, PAUSE }
 @onready var _help_image: TextureRect = $center/panel_frame/inner/help_panel/image
 @onready var _help_prev: Button = $center/panel_frame/inner/help_panel/nav/prev_btn
 @onready var _help_next: Button = $center/panel_frame/inner/help_panel/nav/next_btn
-@onready var _help_dots: HBoxContainer = $center/panel_frame/inner/help_panel/nav/dots
-@onready var _help_back: Button = $center/panel_frame/inner/help_panel/back_btn
+@onready var _help_dots: HBoxContainer = $center/panel_frame/inner/help_panel/dots
+@onready var _help_done: Button = $center/panel_frame/inner/help_panel/nav/done_btn
 
 ## One slide per input method, in the order a newcomer should read them -
 ## mouse before touch, per the design guideline that new games explain mouse
@@ -101,7 +101,7 @@ func _ready() -> void:
 	_panel_back.pressed.connect(_back_from_params)
 	_sound_back.pressed.connect(_show_params)
 	_help_btn.pressed.connect(_open_help)
-	_help_back.pressed.connect(_back_from_help)
+	_help_done.pressed.connect(_back_from_help)
 	_help_prev.pressed.connect(func() -> void: _help_go(-1))
 	_help_next.pressed.connect(func() -> void: _help_go(1))
 	_help_image.gui_input.connect(_on_help_body_input)
@@ -175,7 +175,7 @@ func _show(panel: Control) -> void:
 	for p: Control in [_root, _panel, _sound, _help]:
 		p.visible = (p == panel)
 	var first: Control = {
-		_root: _play_btn, _panel: _sound_btn, _sound: _sound_back, _help: _help_back,
+		_root: _play_btn, _panel: _sound_btn, _sound: _sound_back, _help: _help_done,
 	}.get(panel)
 	if first:
 		first.call_deferred("grab_focus")

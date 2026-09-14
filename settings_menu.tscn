@@ -276,11 +276,17 @@ text = "GOAL"
 horizontal_alignment = 1
 
 [node name="image" type="TextureRect" parent="center/panel_frame/inner/help_panel"]
-custom_minimum_size = Vector2(420, 460)
+custom_minimum_size = Vector2(420, 380)
 layout_mode = 2
 mouse_filter = 0
 expand_mode = 1
 stretch_mode = 5
+
+[node name="dots" type="HBoxContainer" parent="center/panel_frame/inner/help_panel"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 8
+alignment = 1
 
 [node name="nav" type="HBoxContainer" parent="center/panel_frame/inner/help_panel"]
 layout_mode = 2
@@ -294,12 +300,11 @@ focus_mode = 0
 theme_override_font_sizes/font_size = 22
 text = "‹"
 
-[node name="dots" type="HBoxContainer" parent="center/panel_frame/inner/help_panel/nav"]
-custom_minimum_size = Vector2(90, 0)
+[node name="done_btn" type="Button" parent="center/panel_frame/inner/help_panel/nav"]
+custom_minimum_size = Vector2(140, 44)
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
-alignment = 1
+theme_override_font_sizes/font_size = 18
+text = "Done"
 
 [node name="next_btn" type="Button" parent="center/panel_frame/inner/help_panel/nav"]
 custom_minimum_size = Vector2(56, 44)
@@ -307,10 +312,3 @@ layout_mode = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 22
 text = "›"
-
-[node name="back_btn" type="Button" parent="center/panel_frame/inner/help_panel"]
-custom_minimum_size = Vector2(200, 42)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 18
-text = "Back"

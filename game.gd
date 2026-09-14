@@ -306,15 +306,29 @@ const _CLEAR_SPACE_NEEDED := 36.0
 ## MORE disconnected/odd than the original fixed-under-the-maze position, not
 ## less. Replaced with this: shift the ENTIRE maze+HUD assembly (tiles,
 ## player, ghosts, pills - all plain children of this Node2D's parent, plus
-## the `hud` and `touch_controls` CanvasLayers, which don't inherit a parent
-## Node2D's transform and so need their own `.offset` moved the same amount)
-## down by half the leftover space, splitting it into an even margin above
-## AND below instead of one large gap below. The lives/items row keeps its
-## original fixed position directly under the maze - it moves down WITH the
-## maze as part of the same rigid shift, staying visually attached to it,
-## rather than being repositioned independently. Menus (`overlay`/`settings`)
-## are left alone; they already centre themselves in the full viewport and
-## aren't meant to visually align with maze geometry.
+## the `hud`/`touch_controls`/`overlay`/`settings` CanvasLayers, none of which
+## inherit a parent Node2D's transform and so each need their own `.offset`
+## moved the same amount) down by half the leftover space, splitting it into
+## an even margin above AND below instead of one large gap below. The lives/
+## items row keeps its original fixed position directly under the maze - it
+## moves down WITH the maze as part of the same rigid shift, staying visually
+## attached to it, rather than being repositioned independently.
+##
+## `overlay`/`settings` (the pause/game-over/start/settings/help menus) join
+## the same shift so they slide down with everything else instead of a
+## paused game's blurred, now-lower maze showing through behind a menu box
+## still sitting at the old (higher) position. Safe against a menu "falling
+## out of frame" (user's own concern) by construction, not just luck: on
+## touch, settings_menu.gd/overlay_menu.gd's own apply_touch_layout() already
+## top-aligns their content with a small fixed offset instead of centring it
+## (original reason: keep it clear of the on-screen keyboard), so every menu
+## panel's content already fits within the vanilla 640-tall desktop viewport
+## on its own. Shifting the whole CanvasLayer down by `extra * 0.5` can only
+## ever move that already-640-fitting content into a viewport that is now
+## `640 + extra` tall - strictly more room than before, never less, for any
+## panel that already fit (proof: content bottom was at most 640; new
+## content bottom is at most 640 + extra/2, and the new viewport height is
+## 640 + extra >= 640 + extra/2 for any extra >= 0).
 ##
 ## Icons still scale up modestly on the roomiest devices (see
 ## `_hud_icon_scale`, used by `_life_icon()` / `_rebuild_level_icons()`) -
@@ -364,9 +378,10 @@ func _setup_mobile_layout() -> void:
 		maze_root.position.y = shift_y
 	if _hud:
 		_hud.offset.y = shift_y
-	var touch_layer := get_node_or_null(touch_controls_path) as CanvasLayer
-	if touch_layer:
-		touch_layer.offset.y = shift_y
+	for path in [touch_controls_path, overlay_path, settings_path]:
+		var layer := get_node_or_null(path) as CanvasLayer
+		if layer:
+			layer.offset.y = shift_y
 
 	for box in [_lives_box, _items_box]:
 		if box == null:
