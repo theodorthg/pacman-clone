@@ -25,34 +25,34 @@ const _PATH := "user://settings.cfg"
 
 enum Mode { START, PAUSE }
 
-@onready var _root: VBoxContainer = $center/root
-@onready var _panel: VBoxContainer = $center/panel
-@onready var _sound: VBoxContainer = $center/sound_panel
+@onready var _root: VBoxContainer = $center/panel_frame/inner/root
+@onready var _panel: VBoxContainer = $center/panel_frame/inner/panel
+@onready var _sound: VBoxContainer = $center/panel_frame/inner/sound_panel
 
-@onready var _play_btn: Button = $center/root/play_btn
-@onready var _open_settings_btn: Button = $center/root/settings_btn
+@onready var _play_btn: Button = $center/panel_frame/inner/root/play_btn
+@onready var _open_settings_btn: Button = $center/panel_frame/inner/root/settings_btn
 
-@onready var _lives: SpinBox = $center/panel/grid/lives_val
-@onready var _dot_points: SpinBox = $center/panel/grid/dot_points_val
-@onready var _first_extra: SpinBox = $center/panel/grid/first_extra_val
-@onready var _extra_gap: SpinBox = $center/panel/grid/extra_gap_val
-@onready var _gap_mult: SpinBox = $center/panel/grid/gap_mult_val
-@onready var _pac_speed: SpinBox = $center/panel/grid/pac_speed_val
-@onready var _ghost_speed: SpinBox = $center/panel/grid/ghost_speed_val
-@onready var _sound_btn: Button = $center/panel/sound_btn
-@onready var _panel_back: Button = $center/panel/back_btn
+@onready var _lives: SpinBox = $center/panel_frame/inner/panel/grid/lives_val
+@onready var _dot_points: SpinBox = $center/panel_frame/inner/panel/grid/dot_points_val
+@onready var _first_extra: SpinBox = $center/panel_frame/inner/panel/grid/first_extra_val
+@onready var _extra_gap: SpinBox = $center/panel_frame/inner/panel/grid/extra_gap_val
+@onready var _gap_mult: SpinBox = $center/panel_frame/inner/panel/grid/gap_mult_val
+@onready var _pac_speed: SpinBox = $center/panel_frame/inner/panel/grid/pac_speed_val
+@onready var _ghost_speed: SpinBox = $center/panel_frame/inner/panel/grid/ghost_speed_val
+@onready var _sound_btn: Button = $center/panel_frame/inner/panel/sound_btn
+@onready var _panel_back: Button = $center/panel_frame/inner/panel/back_btn
 
-@onready var _sound_rows: GridContainer = $center/sound_panel/rows
-@onready var _sound_back: Button = $center/sound_panel/back_btn
+@onready var _sound_rows: GridContainer = $center/panel_frame/inner/sound_panel/rows
+@onready var _sound_back: Button = $center/panel_frame/inner/sound_panel/back_btn
 
-@onready var _help: VBoxContainer = $center/help_panel
-@onready var _help_btn: Button = $center/root/help_btn
-@onready var _help_page_title: Label = $center/help_panel/page_title
-@onready var _help_body: Label = $center/help_panel/body
-@onready var _help_prev: Button = $center/help_panel/nav/prev_btn
-@onready var _help_next: Button = $center/help_panel/nav/next_btn
-@onready var _help_dots: HBoxContainer = $center/help_panel/nav/dots
-@onready var _help_back: Button = $center/help_panel/back_btn
+@onready var _help: VBoxContainer = $center/panel_frame/inner/help_panel
+@onready var _help_btn: Button = $center/panel_frame/inner/root/help_btn
+@onready var _help_page_title: Label = $center/panel_frame/inner/help_panel/page_title
+@onready var _help_body: Label = $center/panel_frame/inner/help_panel/body
+@onready var _help_prev: Button = $center/panel_frame/inner/help_panel/nav/prev_btn
+@onready var _help_next: Button = $center/panel_frame/inner/help_panel/nav/next_btn
+@onready var _help_dots: HBoxContainer = $center/panel_frame/inner/help_panel/nav/dots
+@onready var _help_back: Button = $center/panel_frame/inner/help_panel/back_btn
 
 ## One slide per input method, in the order a newcomer should read them -
 ## mouse before touch, per the design guideline that new games explain mouse

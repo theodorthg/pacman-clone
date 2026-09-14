@@ -130,7 +130,7 @@ func _process(_dt: float) -> void:
 const _ROW_Y := 84.0
 const _INDICATOR_X := 150.0   ## between the SCORE (ends x135) and HIGH SCORE (starts ~x201) labels
 const _INDICATOR_SIZE := 42.0
-const _PAUSE_X := 330.0       ## between HIGH SCORE (ends ~x278) and LEVEL (starts x390)
+const _PAUSE_X := 362.0       ## between HIGH SCORE (ends ~x278) and LEVEL (starts x390), closer to LEVEL
 const _PAUSE_SIZE := 40.0
 
 

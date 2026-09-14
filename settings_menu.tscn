@@ -1,28 +1,65 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" uid="uid://cdbsmcjjdiuq2" path="res://settings_menu.gd" id="1_set"]
+[ext_resource type="Shader" uid="uid://7hd1m5tmju76" path="res://frosted_glass.gdshader" id="2_shd"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_glass"]
+shader = ExtResource("2_shd")
+shader_parameter/blur = 3.0
+shader_parameter/tint = Color(0.05, 0.05, 0.1, 1)
+shader_parameter/tint_amount = 0.45
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.07, 0.07, 0.1, 0.62)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.16)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+content_margin_left = 30.0
+content_margin_top = 26.0
+content_margin_right = 30.0
+content_margin_bottom = 26.0
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 14
 
 [node name="settings" type="CanvasLayer"]
 layer = 30
 script = ExtResource("1_set")
 
-[node name="bg" type="ColorRect" parent="."]
+[node name="bbc" type="BackBufferCopy" parent="."]
+copy_mode = 2
+
+[node name="glass" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_glass")
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.03, 0.03, 0.09, 0.98)
+color = Color(0, 0, 0, 0.35)
 
 [node name="center" type="VBoxContainer" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
 alignment = 1
 
-[node name="root" type="VBoxContainer" parent="center"]
+[node name="panel_frame" type="PanelContainer" parent="center"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="inner" type="VBoxContainer" parent="center/panel_frame"]
+layout_mode = 2
+
+[node name="root" type="VBoxContainer" parent="center/panel_frame/inner"]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="title" type="Label" parent="center/root"]
+[node name="title" type="Label" parent="center/panel_frame/inner/root"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -31,35 +68,35 @@ theme_override_font_sizes/font_size = 40
 text = "PAC-MAN"
 horizontal_alignment = 1
 
-[node name="play_btn" type="Button" parent="center/root"]
+[node name="play_btn" type="Button" parent="center/panel_frame/inner/root"]
 custom_minimum_size = Vector2(220, 52)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 22
 text = "Play"
 
-[node name="help_btn" type="Button" parent="center/root"]
+[node name="help_btn" type="Button" parent="center/panel_frame/inner/root"]
 custom_minimum_size = Vector2(220, 46)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 18
 text = "How to Play"
 
-[node name="settings_btn" type="Button" parent="center/root"]
+[node name="settings_btn" type="Button" parent="center/panel_frame/inner/root"]
 custom_minimum_size = Vector2(220, 46)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 18
 text = "Settings"
 
-[node name="panel" type="VBoxContainer" parent="center"]
+[node name="panel" type="VBoxContainer" parent="center/panel_frame/inner"]
 visible = false
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_constants/separation = 14
 alignment = 1
 
-[node name="title" type="Label" parent="center/panel"]
+[node name="title" type="Label" parent="center/panel_frame/inner/panel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -68,54 +105,54 @@ theme_override_font_sizes/font_size = 26
 text = "SETTINGS"
 horizontal_alignment = 1
 
-[node name="grid" type="GridContainer" parent="center/panel"]
+[node name="grid" type="GridContainer" parent="center/panel_frame/inner/panel"]
 layout_mode = 2
 theme_override_constants/h_separation = 18
 theme_override_constants/v_separation = 10
 columns = 2
 
-[node name="lives_lbl" type="Label" parent="center/panel/grid"]
+[node name="lives_lbl" type="Label" parent="center/panel_frame/inner/panel/grid"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 text = "Lives"
 
-[node name="lives_val" type="SpinBox" parent="center/panel/grid"]
+[node name="lives_val" type="SpinBox" parent="center/panel_frame/inner/panel/grid"]
 layout_mode = 2
 min_value = 1.0
 max_value = 9.0
 value = 3.0
 alignment = 1
 
-[node name="dot_points_lbl" type="Label" parent="center/panel/grid"]
+[node name="dot_points_lbl" type="Label" parent="center/panel_frame/inner/panel/grid"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 text = "Points per dot"
 
-[node name="dot_points_val" type="SpinBox" parent="center/panel/grid"]
+[node name="dot_points_val" type="SpinBox" parent="center/panel_frame/inner/panel/grid"]
 layout_mode = 2
 min_value = 1.0
 max_value = 100.0
 value = 10.0
 alignment = 1
 
-[node name="first_extra_lbl" type="Label" parent="center/panel/grid"]
+[node name="first_extra_lbl" type="Label" parent="center/panel_frame/inner/panel/grid"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 text = "1st extra life at (0 = off)"
 
-[node name="first_extra_val" type="SpinBox" parent="center/panel/grid"]
+[node name="first_extra_val" type="SpinBox" parent="center/panel_frame/inner/panel/grid"]
 layout_mode = 2
 max_value = 100000.0
 step = 500.0
 value = 2500.0
 alignment = 1
 
-[node name="extra_gap_lbl" type="Label" parent="center/panel/grid"]
+[node name="extra_gap_lbl" type="Label" parent="center/panel_frame/inner/panel/grid"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 text = "Extra-life gap"
 
-[node name="extra_gap_val" type="SpinBox" parent="center/panel/grid"]
+[node name="extra_gap_val" type="SpinBox" parent="center/panel_frame/inner/panel/grid"]
 layout_mode = 2
 min_value = 500.0
 max_value = 100000.0
@@ -123,12 +160,12 @@ step = 500.0
 value = 5000.0
 alignment = 1
 
-[node name="gap_mult_lbl" type="Label" parent="center/panel/grid"]
+[node name="gap_mult_lbl" type="Label" parent="center/panel_frame/inner/panel/grid"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 text = "Gap x each time"
 
-[node name="gap_mult_val" type="SpinBox" parent="center/panel/grid"]
+[node name="gap_mult_val" type="SpinBox" parent="center/panel_frame/inner/panel/grid"]
 layout_mode = 2
 min_value = 1.0
 max_value = 4.0
@@ -136,12 +173,12 @@ step = 0.5
 value = 2.0
 alignment = 1
 
-[node name="pac_speed_lbl" type="Label" parent="center/panel/grid"]
+[node name="pac_speed_lbl" type="Label" parent="center/panel_frame/inner/panel/grid"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 text = "Pac-Man speed"
 
-[node name="pac_speed_val" type="SpinBox" parent="center/panel/grid"]
+[node name="pac_speed_val" type="SpinBox" parent="center/panel_frame/inner/panel/grid"]
 layout_mode = 2
 min_value = 40.0
 max_value = 320.0
@@ -149,12 +186,12 @@ step = 5.0
 value = 110.0
 alignment = 1
 
-[node name="ghost_speed_lbl" type="Label" parent="center/panel/grid"]
+[node name="ghost_speed_lbl" type="Label" parent="center/panel_frame/inner/panel/grid"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 text = "Ghost speed"
 
-[node name="ghost_speed_val" type="SpinBox" parent="center/panel/grid"]
+[node name="ghost_speed_val" type="SpinBox" parent="center/panel_frame/inner/panel/grid"]
 layout_mode = 2
 min_value = 40.0
 max_value = 320.0
@@ -162,28 +199,28 @@ step = 5.0
 value = 100.0
 alignment = 1
 
-[node name="sound_btn" type="Button" parent="center/panel"]
+[node name="sound_btn" type="Button" parent="center/panel_frame/inner/panel"]
 custom_minimum_size = Vector2(200, 40)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 16
 text = "Sound Settings"
 
-[node name="back_btn" type="Button" parent="center/panel"]
+[node name="back_btn" type="Button" parent="center/panel_frame/inner/panel"]
 custom_minimum_size = Vector2(200, 42)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 18
 text = "Back"
 
-[node name="sound_panel" type="VBoxContainer" parent="center"]
+[node name="sound_panel" type="VBoxContainer" parent="center/panel_frame/inner"]
 visible = false
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_constants/separation = 12
 alignment = 1
 
-[node name="title" type="Label" parent="center/sound_panel"]
+[node name="title" type="Label" parent="center/panel_frame/inner/sound_panel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -192,20 +229,20 @@ theme_override_font_sizes/font_size = 26
 text = "SOUND VOLUME"
 horizontal_alignment = 1
 
-[node name="rows" type="GridContainer" parent="center/sound_panel"]
+[node name="rows" type="GridContainer" parent="center/panel_frame/inner/sound_panel"]
 layout_mode = 2
 theme_override_constants/h_separation = 16
 theme_override_constants/v_separation = 8
 columns = 3
 
-[node name="back_btn" type="Button" parent="center/sound_panel"]
+[node name="back_btn" type="Button" parent="center/panel_frame/inner/sound_panel"]
 custom_minimum_size = Vector2(200, 42)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 18
 text = "Back"
 
-[node name="help_panel" type="VBoxContainer" parent="center"]
+[node name="help_panel" type="VBoxContainer" parent="center/panel_frame/inner"]
 visible = false
 custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
@@ -213,7 +250,7 @@ size_flags_horizontal = 4
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="title" type="Label" parent="center/help_panel"]
+[node name="title" type="Label" parent="center/panel_frame/inner/help_panel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -222,7 +259,7 @@ theme_override_font_sizes/font_size = 26
 text = "HOW TO PLAY"
 horizontal_alignment = 1
 
-[node name="page_title" type="Label" parent="center/help_panel"]
+[node name="page_title" type="Label" parent="center/panel_frame/inner/help_panel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.85, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -231,7 +268,7 @@ theme_override_font_sizes/font_size = 19
 text = "GOAL"
 horizontal_alignment = 1
 
-[node name="body" type="Label" parent="center/help_panel"]
+[node name="body" type="Label" parent="center/panel_frame/inner/help_panel"]
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 mouse_filter = 0
@@ -242,33 +279,33 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="nav" type="HBoxContainer" parent="center/help_panel"]
+[node name="nav" type="HBoxContainer" parent="center/panel_frame/inner/help_panel"]
 layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 1
 
-[node name="prev_btn" type="Button" parent="center/help_panel/nav"]
+[node name="prev_btn" type="Button" parent="center/panel_frame/inner/help_panel/nav"]
 custom_minimum_size = Vector2(56, 44)
 layout_mode = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 22
 text = "‹"
 
-[node name="dots" type="HBoxContainer" parent="center/help_panel/nav"]
+[node name="dots" type="HBoxContainer" parent="center/panel_frame/inner/help_panel/nav"]
 custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 alignment = 1
 
-[node name="next_btn" type="Button" parent="center/help_panel/nav"]
+[node name="next_btn" type="Button" parent="center/panel_frame/inner/help_panel/nav"]
 custom_minimum_size = Vector2(56, 44)
 layout_mode = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 22
 text = "›"
 
-[node name="back_btn" type="Button" parent="center/help_panel"]
+[node name="back_btn" type="Button" parent="center/panel_frame/inner/help_panel"]
 custom_minimum_size = Vector2(200, 42)
 layout_mode = 2
 size_flags_horizontal = 4

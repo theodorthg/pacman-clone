@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" uid="uid://baow2afvawkpu" path="res://overlay_menu.gd" id="1_ovl"]
 [ext_resource type="Shader" uid="uid://7hd1m5tmju76" path="res://frosted_glass.gdshader" id="2_shd"]
@@ -8,6 +8,24 @@ shader = ExtResource("2_shd")
 shader_parameter/blur = 3.0
 shader_parameter/tint = Color(0.05, 0.05, 0.1, 1)
 shader_parameter/tint_amount = 0.45
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.07, 0.07, 0.1, 0.62)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.16)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+content_margin_left = 30.0
+content_margin_top = 26.0
+content_margin_right = 30.0
+content_margin_bottom = 26.0
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 14
 
 [node name="overlay" type="CanvasLayer"]
 layer = 20
@@ -27,13 +45,17 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 alignment = 1
 
-[node name="panel" type="VBoxContainer" parent="center"]
+[node name="panel_frame" type="PanelContainer" parent="center"]
 layout_mode = 2
 size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="panel" type="VBoxContainer" parent="center/panel_frame"]
+layout_mode = 2
 theme_override_constants/separation = 18
 alignment = 1
 
-[node name="title" type="Label" parent="center/panel"]
+[node name="title" type="Label" parent="center/panel_frame/panel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -42,48 +64,48 @@ theme_override_font_sizes/font_size = 46
 text = "PAUSED"
 horizontal_alignment = 1
 
-[node name="stats" type="VBoxContainer" parent="center/panel"]
+[node name="stats" type="VBoxContainer" parent="center/panel_frame/panel"]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 14
 alignment = 1
 
-[node name="btn_a" type="Button" parent="center/panel"]
+[node name="btn_a" type="Button" parent="center/panel_frame/panel"]
 custom_minimum_size = Vector2(190, 44)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 19
 text = "Resume"
 
-[node name="btn_b" type="Button" parent="center/panel"]
+[node name="btn_b" type="Button" parent="center/panel_frame/panel"]
 custom_minimum_size = Vector2(190, 44)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 19
 text = "Restart"
 
-[node name="btn_c" type="Button" parent="center/panel"]
+[node name="btn_c" type="Button" parent="center/panel_frame/panel"]
 custom_minimum_size = Vector2(190, 44)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 19
 text = "Restart"
 
-[node name="btn_d" type="Button" parent="center/panel"]
+[node name="btn_d" type="Button" parent="center/panel_frame/panel"]
 custom_minimum_size = Vector2(190, 44)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 19
 text = "Restart"
 
-[node name="btn_e" type="Button" parent="center/panel"]
+[node name="btn_e" type="Button" parent="center/panel_frame/panel"]
 custom_minimum_size = Vector2(190, 44)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 19
 text = "Restart"
 
-[node name="btn_f" type="Button" parent="center/panel"]
+[node name="btn_f" type="Button" parent="center/panel_frame/panel"]
 custom_minimum_size = Vector2(190, 44)
 layout_mode = 2
 size_flags_horizontal = 4

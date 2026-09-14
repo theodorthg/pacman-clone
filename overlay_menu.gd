@@ -12,11 +12,11 @@ signal help_requested
 
 enum Kind { NONE, PAUSE, STATS, GAME_OVER, WIN }
 
-@onready var _title: Label = $center/panel/title
-@onready var _stats: VBoxContainer = $center/panel/stats
+@onready var _title: Label = $center/panel_frame/panel/title
+@onready var _stats: VBoxContainer = $center/panel_frame/panel/stats
 @onready var _buttons: Array = [
-	$center/panel/btn_a, $center/panel/btn_b, $center/panel/btn_c,
-	$center/panel/btn_d, $center/panel/btn_e, $center/panel/btn_f,
+	$center/panel_frame/panel/btn_a, $center/panel_frame/panel/btn_b, $center/panel_frame/panel/btn_c,
+	$center/panel_frame/panel/btn_d, $center/panel_frame/panel/btn_e, $center/panel_frame/panel/btn_f,
 ]
 
 var _kind: int = Kind.NONE
