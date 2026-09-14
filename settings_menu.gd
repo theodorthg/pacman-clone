@@ -139,7 +139,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _help.visible:
 		_help_input(event)
-	if not event.is_action_pressed("pause"):
+	# B (ui_cancel) backs out the same way Esc/the pause key already does -
+	# standard gamepad convention, independent of which control has focus.
+	if not (event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel")):
 		return
 	get_viewport().set_input_as_handled()
 	if _sound.visible:
@@ -247,6 +249,13 @@ func _help_input(event: InputEvent) -> void:
 				_help_go(-1); get_viewport().set_input_as_handled()
 			KEY_RIGHT, KEY_D:
 				_help_go(1); get_viewport().set_input_as_handled()
+	# Gamepad D-pad paging - `ui_left`/`ui_right` rather than move_left/right,
+	# since those raw WASD/arrow keycodes above already cover the keyboard case
+	# and move_left/right would also fire during actual gameplay steering.
+	elif event.is_action_pressed("ui_left"):
+		_help_go(-1); get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_right"):
+		_help_go(1); get_viewport().set_input_as_handled()
 	elif event is InputEventScreenTouch:
 		if event.pressed:
 			_help_touch_id = event.index

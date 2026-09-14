@@ -231,6 +231,8 @@ func _ready() -> void:
 		_overlay.settings_requested.connect(_on_pause_settings_requested)
 	if _overlay and _overlay.has_signal("stats_requested"):
 		_overlay.stats_requested.connect(_on_pause_stats_requested)
+	if _overlay and _overlay.has_signal("highscores_requested"):
+		_overlay.highscores_requested.connect(_on_pause_highscores_requested)
 	if _overlay and _overlay.has_signal("help_requested"):
 		_overlay.help_requested.connect(_on_pause_help_requested)
 	if _overlay and _overlay.has_signal("back_to_start_requested"):
@@ -267,6 +269,13 @@ func _on_pause_settings_requested() -> void:
 func _on_pause_stats_requested() -> void:
 	if _overlay and _overlay.has_method("show_stats"):
 		_overlay.show_stats(_game_stats())
+
+
+## From the pause menu's "High Scores" button: same board as the start menu's,
+## but "Back" returns to the pause menu (default return_to_start=false).
+func _on_pause_highscores_requested() -> void:
+	if _overlay and _overlay.has_method("show_highscores"):
+		_overlay.show_highscores()
 
 
 ## From the START SCREEN's "Stats"/"High Scores" buttons (settings_menu.gd's

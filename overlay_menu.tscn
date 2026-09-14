@@ -111,3 +111,10 @@ layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 19
 text = "Exit"
+
+[node name="btn_g" type="Button" parent="center/panel_frame/panel"]
+custom_minimum_size = Vector2(190, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 19
+text = "Exit"

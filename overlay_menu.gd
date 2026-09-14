@@ -11,6 +11,7 @@ extends CanvasLayer
 signal settings_requested
 signal stats_requested
 signal help_requested
+signal highscores_requested
 ## "Back" from a Stats/Highscores view opened FROM THE START MENU (see
 ## `_return_to_start`) - game.gd re-opens settings_menu's root screen.
 signal back_to_start_requested
@@ -24,7 +25,14 @@ enum Kind { NONE, PAUSE, STATS, GAME_OVER, WIN, HIGHSCORES }
 @onready var _buttons: Array = [
 	$center/panel_frame/panel/btn_a, $center/panel_frame/panel/btn_b, $center/panel_frame/panel/btn_c,
 	$center/panel_frame/panel/btn_d, $center/panel_frame/panel/btn_e, $center/panel_frame/panel/btn_f,
+	$center/panel_frame/panel/btn_g,
 ]
+## Action strings that mean "cancel/dismiss this screen" - wired to the
+## gamepad's B button (ui_cancel) regardless of which button currently has
+## focus, alongside A/ui_accept activating whatever IS focused (standard
+## gamepad convention: A confirms the focused/default action, B always backs
+## out - not a contradiction, both are expected to work at once).
+const _CANCEL_ACTIONS := ["back", "restart_cancel"]
 
 var _kind: int = Kind.NONE
 var _action: Dictionary = {}   ## Button -> action string
@@ -70,6 +78,23 @@ func apply_touch_layout() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# A LineEdit only submits on Enter/Kp Enter (its own internal key check) -
+	# never on the generic ui_accept action - so a gamepad's "A" would
+	# otherwise do nothing while the Hall of Fame name field has focus.
+	if _name_edit and is_instance_valid(_name_edit) and _name_edit.has_focus() \
+			and event.is_action_pressed("ui_accept"):
+		_commit_score()
+		get_viewport().set_input_as_handled()
+		return
+	# B (ui_cancel) always backs out via whichever visible button means
+	# "cancel/back" here, independent of what currently has focus - see
+	# _CANCEL_ACTIONS above.
+	if event.is_action_pressed("ui_cancel"):
+		for b: Button in _buttons:
+			if b.visible and _action.get(b, "") in _CANCEL_ACTIONS:
+				_on_button(b)
+				get_viewport().set_input_as_handled()
+				return
 	if not event.is_action_pressed("pause"):
 		return
 	if _kind == Kind.STATS or _kind == Kind.HIGHSCORES:
@@ -86,8 +111,8 @@ func _unhandled_input(event: InputEvent) -> void:
 func show_pause() -> void:
 	_return_to_start = false
 	_open(Kind.PAUSE, "PAUSED", [
-		["Resume", "resume"], ["Stats", "stats"], ["How to Play", "help"],
-		["Settings", "settings"], ["Restart", "restart"], ["Exit", "exit"],
+		["Resume", "resume"], ["Stats", "stats"], ["High Scores", "highscores"],
+		["How to Play", "help"], ["Settings", "settings"], ["Restart", "restart"], ["Exit", "exit"],
 	])
 
 
@@ -188,6 +213,8 @@ func _on_button(btn: Button) -> void:
 			_resume()
 		"stats":
 			stats_requested.emit()   # game answers with show_stats(_game_stats())
+		"highscores":
+			highscores_requested.emit()   # game answers with show_highscores()
 		"help":
 			visible = false
 			help_requested.emit()    # game -> settings.open_help_from_pause()
@@ -367,6 +394,9 @@ func _commit_score() -> void:
 	var list := HallOfFame.insert(who, _pending_score, _last_stats.get("level", 1))
 	_hof_committed_this_run = true
 	_hof_entry_row.hide()
+	# The name field just disappeared out from under whatever had focus (often
+	# itself) - hand focus to Restart so a gamepad user can carry straight on.
+	_buttons[0].grab_focus()
 	var mine := -1
 	for i in list.size():
 		if str(list[i].get("name", "")) == who and int(list[i].get("score", 0)) == _pending_score:
