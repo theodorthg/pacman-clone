@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="980" viewBox="0 0 900 980" font-family="DejaVu Sans, 'Liberation Sans', sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#141225"/><stop offset="1" stop-color="#07060c"/>
+    </linearGradient>
+    <marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8cd9ff"/>
+    </marker>
+    <marker id="ahRed" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#5c6b86"/>
+    </marker>
+  </defs>
+  <rect width="900" height="980" fill="url(#bg)"/>
+  <rect x="14" y="14" width="872" height="952" rx="18" fill="none" stroke="#fff24d" stroke-opacity="0.20" stroke-width="2"/>
+
+  <text x="450" y="70" text-anchor="middle" font-size="28" fill="#eef4ff" font-weight="700">The route is plotted blind</text>
+  <text x="450" y="104" text-anchor="middle" font-size="22" fill="#8fa3c8">it does not dodge ghosts on its own</text>
+
+  <!-- old, now-abandoned route heading straight into a ghost -->
+  <g fill="none" stroke="#5c6b86" stroke-width="5" stroke-dasharray="10 9">
+    <path d="M160 250 L 520 250" marker-end="url(#ahRed)"/>
+  </g>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/pac_right.png" x="130" y="220" width="60" height="60"/>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/ghost_orange.png" x="520" y="216" width="64" height="64"/>
+  <g stroke="#5c6b86" stroke-width="2" fill="#0d1226" fill-opacity="0.6">
+    <path d="M160 200 L 520 200 L 520 350 L 160 350 Z" fill-opacity="0" stroke-dasharray="4 6" stroke-width="1.5"/>
+  </g>
+  <text x="340" y="380" text-anchor="middle" font-size="24" fill="#5c6b86">old click - danger ahead</text>
+
+  <rect x="40" y="400" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
+
+  <!-- new click reroutes away, down and around -->
+  <g fill="none" stroke="#8cd9ff" stroke-width="6" stroke-dasharray="12 10">
+    <path d="M300 500 L 300 640 L 620 640" marker-end="url(#ah)"/>
+  </g>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/pac_up_open.png" x="270" y="470" width="60" height="60" transform="rotate(180 300 500)"/>
+  <g transform="translate(620 640)">
+    <circle r="30" fill="#d9e6ff" fill-opacity="0.12" stroke="#d9e6ff" stroke-opacity="0.4" stroke-width="2"/>
+    <path d="M-8 -20 L 9 18 L 0 11 L -3 23 L -9 21 L -5 9 L -20 7 Z" fill="#eef4ff" stroke="#0a0d1c" stroke-width="1.5"/>
+  </g>
+  <text x="460" y="690" text-anchor="middle" font-size="24" font-weight="700" fill="#8cd9ff">new click - safe way around</text>
+
+  <text x="450" y="850" text-anchor="middle" font-size="28" font-weight="700" fill="#eef4ff">Click again at any time to reroute</text>
+  <text x="450" y="884" text-anchor="middle" font-size="24" fill="#8fa3c8">from wherever Pac-Man currently is</text>
+  <text x="450" y="928" text-anchor="middle" font-size="22" fill="#8fa3c8">that's how you steer around danger</text>
+</svg>

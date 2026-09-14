@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="980" viewBox="0 0 900 980" font-family="DejaVu Sans, 'Liberation Sans', sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#141225"/><stop offset="1" stop-color="#07060c"/>
+    </linearGradient>
+    <marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8cd9ff"/>
+    </marker>
+  </defs>
+  <rect width="900" height="980" fill="url(#bg)"/>
+  <rect x="14" y="14" width="872" height="952" rx="18" fill="none" stroke="#fff24d" stroke-opacity="0.20" stroke-width="2"/>
+
+  <!-- corridor of dots with pac-man eating along it -->
+  <g fill="#ffe98a">
+    <circle cx="140" cy="150" r="7"/><circle cx="200" cy="150" r="7"/><circle cx="260" cy="150" r="7"/>
+  </g>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/pac_right.png" x="300" y="118" width="64" height="64"/>
+  <text x="500" y="164" font-size="30" fill="#eef4ff">Eat every dot</text>
+  <text x="500" y="196" font-size="24" fill="#8fa3c8">to clear the level</text>
+
+  <rect x="40" y="250" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
+
+  <!-- power pill turning a ghost blue/edible -->
+  <circle cx="116" cy="326" r="26" fill="none" stroke="#eef4ff" stroke-opacity="0.15" stroke-width="2"/>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/pill_big.png" x="98" y="308" width="36" height="36" style="image-rendering: pixelated"/>
+  <text x="170" y="320" font-size="28" fill="#eef4ff">4 big pills</text>
+  <text x="170" y="352" font-size="22" fill="#8fa3c8">turn the ghosts blue</text>
+
+  <g stroke="#8cd9ff" stroke-width="5" fill="none">
+    <path d="M330 326 L 470 326" marker-end="url(#ah)"/>
+  </g>
+
+  <g opacity="0.9">
+    <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/ghost_cyan.png" x="500" y="290" width="64" height="64"/>
+    <rect x="500" y="290" width="64" height="64" fill="#3b6bff" opacity="0.35" rx="10"/>
+  </g>
+  <text x="590" y="312" font-size="26" font-weight="700" fill="#8cd9ff">Chase them</text>
+  <text x="590" y="342" font-size="22" fill="#8fa3c8">for bonus points</text>
+
+  <rect x="40" y="420" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
+
+  <!-- fruit bonus -->
+  <g transform="translate(120 470) scale(4)">
+    <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/cherry.png" x="0" y="0" width="16" height="16"/>
+  </g>
+  <text x="260" y="500" font-size="28" fill="#eef4ff">Fruit appears</text>
+  <text x="260" y="532" font-size="22" fill="#8fa3c8">twice per level - free bonus points</text>
+
+  <rect x="40" y="590" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
+
+  <!-- the four ghosts, named -->
+  <text x="450" y="640" text-anchor="middle" font-size="26" fill="#eef4ff" font-weight="700">Avoid the ghosts otherwise</text>
+  <g>
+    <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/ghost_red.png" x="180" y="680" width="80" height="80"/>
+    <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/ghost_pink.png" x="320" y="680" width="80" height="80"/>
+    <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/ghost_cyan.png" x="460" y="680" width="80" height="80"/>
+    <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/ghost_orange.png" x="600" y="680" width="80" height="80"/>
+  </g>
+  <text x="220" y="790" text-anchor="middle" font-size="18" fill="#8fa3c8">Blinky</text>
+  <text x="360" y="790" text-anchor="middle" font-size="18" fill="#8fa3c8">Pinky</text>
+  <text x="500" y="790" text-anchor="middle" font-size="18" fill="#8fa3c8">Inky</text>
+  <text x="640" y="790" text-anchor="middle" font-size="18" fill="#8fa3c8">Clyde</text>
+
+  <text x="450" y="900" text-anchor="middle" font-size="26" font-weight="700" fill="#fff24d">A touch means a lost life</text>
+  <text x="450" y="932" text-anchor="middle" font-size="22" fill="#8fa3c8">unless that ghost is currently blue</text>
+</svg>

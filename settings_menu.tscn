@@ -89,6 +89,13 @@ size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 18
 text = "Settings"
 
+[node name="exit_btn" type="Button" parent="center/panel_frame/inner/root"]
+custom_minimum_size = Vector2(220, 46)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 18
+text = "Exit"
+
 [node name="panel" type="VBoxContainer" parent="center/panel_frame/inner"]
 visible = false
 layout_mode = 2
@@ -244,10 +251,10 @@ text = "Back"
 
 [node name="help_panel" type="VBoxContainer" parent="center/panel_frame/inner"]
 visible = false
-custom_minimum_size = Vector2(400, 0)
+custom_minimum_size = Vector2(460, 0)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 alignment = 1
 
 [node name="title" type="Label" parent="center/panel_frame/inner/help_panel"]
@@ -268,16 +275,12 @@ theme_override_font_sizes/font_size = 19
 text = "GOAL"
 horizontal_alignment = 1
 
-[node name="body" type="Label" parent="center/panel_frame/inner/help_panel"]
-custom_minimum_size = Vector2(0, 150)
+[node name="image" type="TextureRect" parent="center/panel_frame/inner/help_panel"]
+custom_minimum_size = Vector2(420, 460)
 layout_mode = 2
 mouse_filter = 0
-theme_override_constants/line_spacing = 6
-theme_override_font_sizes/font_size = 15
-text = "Eat every dot to clear the level."
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 2
+expand_mode = 1
+stretch_mode = 5
 
 [node name="nav" type="HBoxContainer" parent="center/panel_frame/inner/help_panel"]
 layout_mode = 2

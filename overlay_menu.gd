@@ -127,6 +127,11 @@ func _on_button(btn: Button) -> void:
 			visible = false
 			settings_requested.emit()
 		"restart":
+			# Same as clicking Play on the start screen - skip straight into a
+			# fresh run instead of reloading back into the start screen (user
+			# report: "Restart" from Pause should be treated as if Play had
+			# been clicked). See game.gd::_auto_start_next_run.
+			Game._auto_start_next_run = true
 			get_tree().paused = false
 			get_tree().reload_current_scene()
 		"exit":

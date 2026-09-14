@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="980" viewBox="0 0 900 980" font-family="DejaVu Sans, 'Liberation Sans', sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#141225"/><stop offset="1" stop-color="#07060c"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="980" fill="url(#bg)"/>
+  <rect x="14" y="14" width="872" height="952" rx="18" fill="none" stroke="#fff24d" stroke-opacity="0.20" stroke-width="2"/>
+
+  <!-- gear icon -->
+  <g transform="translate(450 170)" fill="#fff24d" fill-opacity="0.85">
+    <circle r="30" fill="#0d1226" stroke="#fff24d" stroke-width="6"/>
+    <g stroke="#fff24d" stroke-width="10" stroke-linecap="round">
+      <line x1="0" y1="-58" x2="0" y2="-42"/>
+      <line x1="0" y1="58" x2="0" y2="42"/>
+      <line x1="-58" y1="0" x2="-42" y2="0"/>
+      <line x1="58" y1="0" x2="42" y2="0"/>
+      <line x1="-41" y1="-41" x2="-30" y2="-30"/>
+      <line x1="41" y1="41" x2="30" y2="30"/>
+      <line x1="-41" y1="41" x2="-30" y2="30"/>
+      <line x1="41" y1="-41" x2="30" y2="-30"/>
+    </g>
+  </g>
+
+  <!-- lives row: three small pac-man icons -->
+  <text x="80" y="280" font-size="24" fill="#8fa3c8">Lives</text>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/pac_right.png" x="280" y="248" width="36" height="36"/>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/pac_right.png" x="322" y="248" width="36" height="36"/>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/pac_right.png" x="364" y="248" width="36" height="36"/>
+  <text x="450" y="278" font-size="22" fill="#eef4ff">how many chances you get</text>
+
+  <rect x="60" y="330" width="780" height="2" fill="#fff24d" fill-opacity="0.16"/>
+
+  <!-- speed sliders -->
+  <text x="80" y="392" font-size="24" fill="#8fa3c8">Pac-Man / Ghost speed</text>
+  <g stroke="#4a5480" stroke-width="6" stroke-linecap="round"><line x1="500" y1="380" x2="760" y2="380"/></g>
+  <circle cx="640" cy="380" r="14" fill="#fff24d"/>
+  <g stroke="#4a5480" stroke-width="6" stroke-linecap="round"><line x1="500" y1="420" x2="760" y2="420"/></g>
+  <circle cx="600" cy="420" r="14" fill="#8cd9ff"/>
+
+  <rect x="60" y="460" width="780" height="2" fill="#fff24d" fill-opacity="0.16"/>
+
+  <!-- points per dot -->
+  <text x="80" y="522" font-size="24" fill="#8fa3c8">Points per dot</text>
+  <circle cx="516" cy="514" r="16" fill="none" stroke="#eef4ff" stroke-opacity="0.15" stroke-width="2"/>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/pill_small.png" x="504" y="502" width="24" height="24" style="image-rendering: pixelated"/>
+  <text x="550" y="522" font-size="26" fill="#fff24d" font-weight="700">= 10</text>
+
+  <rect x="60" y="562" width="780" height="2" fill="#fff24d" fill-opacity="0.16"/>
+
+  <!-- extra life threshold -->
+  <text x="80" y="624" font-size="24" fill="#8fa3c8">Extra-life thresholds</text>
+  <text x="500" y="624" font-size="24" fill="#eef4ff">at score X, then every Y more</text>
+
+  <rect x="60" y="664" width="780" height="2" fill="#fff24d" fill-opacity="0.16"/>
+
+  <!-- sound -->
+  <g transform="translate(90 700)" stroke="#8cd9ff" stroke-width="4" fill="#8cd9ff">
+    <path d="M0 12 L14 12 L30 -4 L30 28 L14 12" fill="#8cd9ff" stroke="none"/>
+    <path d="M40 2 Q50 12 40 22" fill="none"/>
+    <path d="M48 -6 Q64 12 48 30" fill="none"/>
+  </g>
+  <text x="200" y="726" font-size="24" fill="#8fa3c8">Sound Settings</text>
+  <text x="500" y="726" font-size="24" fill="#eef4ff">volume per sound effect</text>
+
+  <text x="450" y="860" text-anchor="middle" font-size="28" font-weight="700" fill="#eef4ff">Tune the difficulty to your liking</text>
+  <text x="450" y="900" text-anchor="middle" font-size="22" fill="#8fa3c8">reachable from the start screen and the pause menu</text>
+</svg>

@@ -145,6 +145,14 @@ var _configuring: bool = true
 var _next_extra_life: int = 0
 var _cur_extra_gap: float = 0.0
 
+## Set by the pause overlay's "Restart" right before reload_current_scene() -
+## a static survives the reload (only nodes get freed/recreated, not the
+## script class), so _ready() below can tell "this is a restart" apart from
+## the game's very first load and skip straight into a fresh run instead of
+## showing the start screen again (user request: Restart should behave like
+## Play was clicked, not like arriving at the title screen).
+static var _auto_start_next_run: bool = false
+
 var _started: bool = false
 var _grace_t: float = 0.0
 var _dots_eaten: int = 0
@@ -227,7 +235,11 @@ func _ready() -> void:
 		_settings.started.connect(_on_settings_chosen)
 		_settings.settings_changed.connect(_on_settings_live_change)
 		_settings.closed.connect(_on_settings_closed)
-		_settings.call_deferred("open_start")
+		if _auto_start_next_run:
+			_auto_start_next_run = false
+			_settings.call_deferred("request_play")
+		else:
+			_settings.call_deferred("open_start")
 	else:
 		_configuring = false
 		_show_ready(true)

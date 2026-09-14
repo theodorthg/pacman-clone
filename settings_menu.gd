@@ -31,6 +31,7 @@ enum Mode { START, PAUSE }
 
 @onready var _play_btn: Button = $center/panel_frame/inner/root/play_btn
 @onready var _open_settings_btn: Button = $center/panel_frame/inner/root/settings_btn
+@onready var _exit_btn: Button = $center/panel_frame/inner/root/exit_btn
 
 @onready var _lives: SpinBox = $center/panel_frame/inner/panel/grid/lives_val
 @onready var _dot_points: SpinBox = $center/panel_frame/inner/panel/grid/dot_points_val
@@ -48,7 +49,7 @@ enum Mode { START, PAUSE }
 @onready var _help: VBoxContainer = $center/panel_frame/inner/help_panel
 @onready var _help_btn: Button = $center/panel_frame/inner/root/help_btn
 @onready var _help_page_title: Label = $center/panel_frame/inner/help_panel/page_title
-@onready var _help_body: Label = $center/panel_frame/inner/help_panel/body
+@onready var _help_image: TextureRect = $center/panel_frame/inner/help_panel/image
 @onready var _help_prev: Button = $center/panel_frame/inner/help_panel/nav/prev_btn
 @onready var _help_next: Button = $center/panel_frame/inner/help_panel/nav/next_btn
 @onready var _help_dots: HBoxContainer = $center/panel_frame/inner/help_panel/nav/dots
@@ -56,45 +57,17 @@ enum Mode { START, PAUSE }
 
 ## One slide per input method, in the order a newcomer should read them -
 ## mouse before touch, per the design guideline that new games explain mouse
-## control as a first-class option. Kept as separate pages (not one big wall
-## of text) so each control scheme gets focus, and so the deck can grow
-## per-device without reshuffling a single paragraph.
+## control as a first-class option. Image-based (like tetris/galaga's help,
+## assets/help_src/*.svg -> render.sh -> assets/graphics/help/<file>.png) so
+## each page shows a real illustration instead of a wall of text.
+const HELP_DIR := "res://assets/graphics/help/"
 const HELP_PAGES: Array[Dictionary] = [
-	{"title": "GOAL", "body":
-		"Eat every dot to clear the level.\n"
-		+ "The 4 big pills turn the ghosts blue —\n"
-		+ "chase them for bonus points.\n"
-		+ "Fruit appears twice per level."},
-	{"title": "MOUSE — CLICK TO MOVE", "body":
-		"Click anywhere in the maze and\n"
-		+ "Pac-Man finds his own way there,\n"
-		+ "turning every corner along the route.\n"
-		+ "A click also aims ahead, like a key\n"
-		+ "press — no need to wait for the\n"
-		+ "next junction."},
-	{"title": "MOUSE — CHANGE YOUR MIND", "body":
-		"The route is plotted blind — it does\n"
-		+ "not dodge ghosts, so clicking far\n"
-		+ "away can walk you right into one.\n"
-		+ "Click again at any time to reroute\n"
-		+ "from wherever you are — that's how\n"
-		+ "you steer around danger."},
-	{"title": "KEYBOARD / GAMEPAD", "body":
-		"Arrow keys or WASD to turn.\n"
-		+ "P, Esc, or the pause button to pause.\n"
-		+ "A key press aims ahead too, just\n"
-		+ "like a mouse click."},
-	{"title": "TOUCH", "body":
-		"Swipe anywhere to turn (short\n"
-		+ "flicks work too).\n"
-		+ "The compass shows your steering\n"
-		+ "direction.\n"
-		+ "Tap  ❚❚  near the top to pause."},
-	{"title": "SETTINGS", "body":
-		"Tune the difficulty there: number\n"
-		+ "of lives, Pac-Man / ghost speed,\n"
-		+ "points per dot, extra-life\n"
-		+ "thresholds — plus per-sound volume."},
+	{"title": "GOAL", "file": "goal"},
+	{"title": "MOUSE — CLICK TO MOVE", "file": "mouse_click"},
+	{"title": "MOUSE — CHANGE YOUR MIND", "file": "mouse_change"},
+	{"title": "KEYBOARD / GAMEPAD", "file": "keyboard"},
+	{"title": "TOUCH", "file": "touch"},
+	{"title": "SETTINGS", "file": "settings"},
 ]
 
 var _mode: int = Mode.START
@@ -117,6 +90,13 @@ func _ready() -> void:
 
 	_play_btn.pressed.connect(_on_play)
 	_open_settings_btn.pressed.connect(_show_params)
+	# A browser tab can't close itself - get_tree().quit() just freezes the
+	# canvas - so the start screen drops Exit on the Web build, same as the
+	# pause overlay already does (see overlay_menu.gd::_open()).
+	if OS.has_feature("web"):
+		_exit_btn.hide()
+	else:
+		_exit_btn.pressed.connect(func() -> void: get_tree().quit())
 	_sound_btn.pressed.connect(_show_sound)
 	_panel_back.pressed.connect(_back_from_params)
 	_sound_back.pressed.connect(_show_params)
@@ -124,7 +104,7 @@ func _ready() -> void:
 	_help_back.pressed.connect(_back_from_help)
 	_help_prev.pressed.connect(func() -> void: _help_go(-1))
 	_help_next.pressed.connect(func() -> void: _help_go(1))
-	_help_body.gui_input.connect(_on_help_body_input)
+	_help_image.gui_input.connect(_on_help_body_input)
 
 	for sb in [_lives, _dot_points, _first_extra, _extra_gap, _gap_mult, _pac_speed, _ghost_speed]:
 		sb.value_changed.connect(_on_param_changed)
@@ -217,7 +197,7 @@ func _help_go(delta: int) -> void:
 	_help_page = wrapi(_help_page + delta, 0, HELP_PAGES.size())
 	var page: Dictionary = HELP_PAGES[_help_page]
 	_help_page_title.text = str(page.get("title", ""))
-	_help_body.text = str(page.get("body", ""))
+	_help_image.texture = load(HELP_DIR + str(page.get("file", "")) + ".png")
 	_refresh_help_dots()
 
 
@@ -227,20 +207,24 @@ func _refresh_help_dots() -> void:
 	for i in HELP_PAGES.size():
 		var d := ColorRect.new()
 		d.custom_minimum_size = Vector2(7, 7)
+		# Without this, each dot defaults to SIZE_FILL vertically and stretches
+		# to match the tall prev/next buttons next to it in "nav" (44px) -
+		# renders as a tall bar instead of a small square (user report).
+		d.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		d.color = Color(1, 0.95, 0.3, 1) if i == _help_page else Color(1, 1, 1, 0.25)
 		d.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_help_dots.add_child(d)
 
 
-## Click anywhere on the page text to advance too - the third way to flip
+## Click anywhere on the page image to advance too - the third way to flip
 ## pages, alongside the ‹ / › buttons and swipe/arrow-keys below.
 func _on_help_body_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		_help_go(1)
-		_help_body.accept_event()
+		_help_image.accept_event()
 	elif event is InputEventScreenTouch and event.pressed:
 		_help_go(1)
-		_help_body.accept_event()
+		_help_image.accept_event()
 
 
 ## Swipe / arrow-key paging while the help deck is open. Raw keycodes (not the
@@ -279,6 +263,15 @@ func _on_play() -> void:
 	visible = false
 	get_tree().paused = false
 	started.emit(cfg)
+
+
+## Lets an external caller (the pause overlay's "Restart", via a scene reload
+## + Game._auto_start_next_run - see game.gd::_ready()) start a fresh run with
+## the currently saved settings, without making the player click Play again.
+## _ready() already calls _load() before this can run, so the fields here
+## reflect user://settings.cfg, exactly like a normal Play click would.
+func request_play() -> void:
+	_on_play()
 
 
 func _back_from_params() -> void:

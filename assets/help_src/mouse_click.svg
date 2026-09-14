@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="980" viewBox="0 0 900 980" font-family="DejaVu Sans, 'Liberation Sans', sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#141225"/><stop offset="1" stop-color="#07060c"/>
+    </linearGradient>
+    <marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8cd9ff"/>
+    </marker>
+  </defs>
+  <rect width="900" height="980" fill="url(#bg)"/>
+  <rect x="14" y="14" width="872" height="952" rx="18" fill="none" stroke="#fff24d" stroke-opacity="0.20" stroke-width="2"/>
+
+  <!-- a small maze corridor bending around two corners -->
+  <g fill="none" stroke="#2c3560" stroke-width="60" stroke-linecap="round">
+    <path d="M140 180 L 140 420 L 480 420 L 480 700 L 720 700"/>
+  </g>
+  <g fill="none" stroke="#0d1226" stroke-width="46" stroke-linecap="round">
+    <path d="M140 180 L 140 420 L 480 420 L 480 700 L 720 700"/>
+  </g>
+
+  <!-- planned route, dashed -->
+  <g fill="none" stroke="#8cd9ff" stroke-width="6" stroke-dasharray="12 10">
+    <path d="M140 200 L 140 420 L 480 420 L 480 700 L 700 700" marker-end="url(#ah)"/>
+  </g>
+
+  <!-- pac-man at the start, facing along the route -->
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/pac_up_open.png" x="112" y="150" width="56" height="56" transform="rotate(-90 140 178)"/>
+
+  <!-- destination: mouse-cursor icon + target ring -->
+  <g transform="translate(720 700)">
+    <circle r="34" fill="#d9e6ff" fill-opacity="0.12" stroke="#d9e6ff" stroke-opacity="0.4" stroke-width="2"/>
+    <path d="M-8 -22 L 10 20 L 0 12 L -4 26 L -10 24 L -6 10 L -22 8 Z" fill="#eef4ff" stroke="#0a0d1c" stroke-width="1.5"/>
+  </g>
+
+  <text x="450" y="60" text-anchor="middle" font-size="30" fill="#eef4ff" font-weight="700">Click anywhere in the maze</text>
+
+  <text x="450" y="850" text-anchor="middle" font-size="28" font-weight="700" fill="#eef4ff">Pac-Man finds his own way there</text>
+  <text x="450" y="884" text-anchor="middle" font-size="24" fill="#8fa3c8">turning every corner along the route</text>
+  <text x="450" y="928" text-anchor="middle" font-size="22" fill="#8fa3c8">a click also aims ahead, like a key press</text>
+  <text x="450" y="958" text-anchor="middle" font-size="22" fill="#8fa3c8">no need to wait for the next junction</text>
+</svg>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="980" viewBox="0 0 900 980" font-family="DejaVu Sans, 'Liberation Sans', sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#141225"/><stop offset="1" stop-color="#07060c"/>
+    </linearGradient>
+    <marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8cd9ff"/>
+    </marker>
+  </defs>
+  <rect width="900" height="980" fill="url(#bg)"/>
+  <rect x="14" y="14" width="872" height="952" rx="18" fill="none" stroke="#fff24d" stroke-opacity="0.20" stroke-width="2"/>
+
+  <!-- phone screen -->
+  <rect x="230" y="60" width="440" height="740" rx="28" fill="#0a0d1c" stroke="#2c3560" stroke-width="4"/>
+  <rect x="256" y="96" width="388" height="668" rx="6" fill="#0d1226"/>
+
+  <!-- pause button near the top, like the real HUD -->
+  <rect x="576" y="122" width="52" height="44" rx="8" fill="#8cd9ff" fill-opacity="0.20" stroke="#8cd9ff" stroke-opacity="0.6" stroke-width="2"/>
+  <text x="602" y="153" text-anchor="middle" font-size="26" fill="#eef4ff">| |</text>
+  <g stroke="#5c6b86" stroke-width="2" fill="none"><path d="M700 210 L 615 168"/></g>
+  <text x="800" y="222" text-anchor="end" font-size="26" fill="#8fa3c8">Pause button</text>
+
+  <!-- compass / swipe arrows around a center point -->
+  <g transform="translate(450 430)" stroke="#8cd9ff" stroke-width="7" fill="#8cd9ff">
+    <line x1="0" y1="0" x2="0" y2="-90" marker-end="url(#ah)"/>
+    <line x1="0" y1="0" x2="0" y2="90" marker-end="url(#ah)"/>
+    <line x1="0" y1="0" x2="-90" y2="0" marker-end="url(#ah)"/>
+    <line x1="0" y1="0" x2="90" y2="0" marker-end="url(#ah)"/>
+  </g>
+  <circle cx="450" cy="430" r="26" fill="#d9e6ff" fill-opacity="0.14" stroke="#d9e6ff" stroke-opacity="0.35" stroke-width="2"/>
+  <circle cx="450" cy="430" r="8" fill="#eef4ff"/>
+
+  <!-- pac-man in the middle of the maze -->
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/pac_right.png" x="410" y="590" width="80" height="80"/>
+
+  <text x="450" y="852" text-anchor="middle" font-size="30" font-weight="700" fill="#eef4ff">Swipe anywhere to turn</text>
+  <text x="450" y="884" text-anchor="middle" font-size="24" fill="#8fa3c8">short flicks work too</text>
+  <text x="450" y="924" text-anchor="middle" font-size="22" fill="#8fa3c8">tap the pause button near the top to pause</text>
+</svg>
