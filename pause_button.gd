@@ -2,8 +2,14 @@ class_name PauseButton
 extends Control
 
 ## Small round on-screen pause button (the touch equivalent of Esc).
+## `size` is the tappable area; `visual_scale` (1.0 = fills `size`) lets the
+## drawn circle stay smaller than that so the tap target can be enlarged
+## (design guideline: 56px minimum) without visually growing the button
+## itself and crowding the score row it sits in.
 
 signal tapped
+
+@export var visual_scale: float = 1.0
 
 var _down: bool = false
 
@@ -30,7 +36,7 @@ func _gui_input(event: InputEvent) -> void:
 
 func _draw() -> void:
 	var c := size * 0.5
-	var r := minf(size.x, size.y) * 0.5
+	var r := minf(size.x, size.y) * 0.5 * visual_scale
 	draw_circle(c, r, Color(0.0, 0.0, 0.0, 0.34 if _down else 0.28))
 	draw_arc(c, r - 1.0, 0.0, TAU, 40, Color(1, 1, 1, 0.16), 2.0)
 	var bw := r * 0.24

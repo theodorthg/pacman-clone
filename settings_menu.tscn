@@ -89,6 +89,20 @@ size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 18
 text = "Settings"
 
+[node name="stats_btn" type="Button" parent="center/panel_frame/inner/root"]
+custom_minimum_size = Vector2(220, 46)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 18
+text = "Stats"
+
+[node name="hof_btn" type="Button" parent="center/panel_frame/inner/root"]
+custom_minimum_size = Vector2(220, 46)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 18
+text = "High Scores"
+
 [node name="exit_btn" type="Button" parent="center/panel_frame/inner/root"]
 custom_minimum_size = Vector2(220, 46)
 layout_mode = 2

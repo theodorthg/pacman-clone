@@ -233,11 +233,17 @@ func _ready() -> void:
 		_overlay.stats_requested.connect(_on_pause_stats_requested)
 	if _overlay and _overlay.has_signal("help_requested"):
 		_overlay.help_requested.connect(_on_pause_help_requested)
+	if _overlay and _overlay.has_signal("back_to_start_requested"):
+		_overlay.back_to_start_requested.connect(_on_overlay_back_to_start)
 
 	if _settings and _settings.has_method("open_start"):
 		_settings.started.connect(_on_settings_chosen)
 		_settings.settings_changed.connect(_on_settings_live_change)
 		_settings.closed.connect(_on_settings_closed)
+		if _settings.has_signal("stats_requested"):
+			_settings.stats_requested.connect(_on_start_stats_requested)
+		if _settings.has_signal("hof_requested"):
+			_settings.hof_requested.connect(_on_start_hof_requested)
 		if _auto_start_next_run:
 			_auto_start_next_run = false
 			_settings.call_deferred("request_play")
@@ -261,6 +267,25 @@ func _on_pause_settings_requested() -> void:
 func _on_pause_stats_requested() -> void:
 	if _overlay and _overlay.has_method("show_stats"):
 		_overlay.show_stats(_game_stats())
+
+
+## From the START SCREEN's "Stats"/"High Scores" buttons (settings_menu.gd's
+## root panel) - same overlay screens as the pause menu's, but "Back" needs to
+## return to the start screen instead (the `true` argument - see
+## overlay_menu.gd's `_return_to_start` / `_do_back()`).
+func _on_start_stats_requested() -> void:
+	if _overlay and _overlay.has_method("show_stats"):
+		_overlay.show_stats(_game_stats(), true)
+
+
+func _on_start_hof_requested() -> void:
+	if _overlay and _overlay.has_method("show_highscores"):
+		_overlay.show_highscores(true)
+
+
+func _on_overlay_back_to_start() -> void:
+	if _settings and _settings.has_method("open_start"):
+		_settings.open_start()
 
 
 ## From the pause menu's "How to Play" button.

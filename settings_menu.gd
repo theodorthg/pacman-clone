@@ -20,6 +20,12 @@ extends CanvasLayer
 signal started(config: Dictionary)
 signal settings_changed(config: Dictionary)
 signal closed
+## Start-screen-only: "Stats"/"High Scores" buttons - game.gd answers with
+## overlay.show_stats(_game_stats(), true) / overlay.show_highscores(true),
+## the `true` telling the overlay "Back" belongs to open_start() again, not
+## the in-game pause menu (see overlay_menu.gd's _return_to_start).
+signal stats_requested
+signal hof_requested
 
 const _PATH := "user://settings.cfg"
 
@@ -32,6 +38,8 @@ enum Mode { START, PAUSE }
 @onready var _play_btn: Button = $center/panel_frame/inner/root/play_btn
 @onready var _open_settings_btn: Button = $center/panel_frame/inner/root/settings_btn
 @onready var _exit_btn: Button = $center/panel_frame/inner/root/exit_btn
+@onready var _stats_btn: Button = $center/panel_frame/inner/root/stats_btn
+@onready var _hof_btn: Button = $center/panel_frame/inner/root/hof_btn
 
 @onready var _lives: SpinBox = $center/panel_frame/inner/panel/grid/lives_val
 @onready var _dot_points: SpinBox = $center/panel_frame/inner/panel/grid/dot_points_val
@@ -97,6 +105,8 @@ func _ready() -> void:
 		_exit_btn.hide()
 	else:
 		_exit_btn.pressed.connect(func() -> void: get_tree().quit())
+	_stats_btn.pressed.connect(func() -> void: visible = false; stats_requested.emit())
+	_hof_btn.pressed.connect(func() -> void: visible = false; hof_requested.emit())
 	_sound_btn.pressed.connect(_show_sound)
 	_panel_back.pressed.connect(_back_from_params)
 	_sound_back.pressed.connect(_show_params)

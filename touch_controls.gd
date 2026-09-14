@@ -131,7 +131,11 @@ const _ROW_Y := 84.0
 const _INDICATOR_X := 150.0   ## between the SCORE (ends x135) and HIGH SCORE (starts ~x201) labels
 const _INDICATOR_SIZE := 42.0
 const _PAUSE_X := 362.0       ## between HIGH SCORE (ends ~x278) and LEVEL (starts x390), closer to LEVEL
+## Drawn circle stays this size - only the tappable area (_PAUSE_HIT_SIZE)
+## grows. A visually bigger button here would crowd the score row (user
+## report: hitting it was "fummelig" - fiddly - not that it looked small).
 const _PAUSE_SIZE := 40.0
+const _PAUSE_HIT_SIZE := 56.0   ## design-guideline minimum touch target
 
 
 func _layout() -> void:
@@ -140,8 +144,9 @@ func _layout() -> void:
 	_indicator.size = Vector2(_INDICATOR_SIZE, _INDICATOR_SIZE)
 	_indicator.position = Vector2(_INDICATOR_X - _INDICATOR_SIZE * 0.5, _ROW_Y - _INDICATOR_SIZE * 0.5)
 
-	_pause.size = Vector2(_PAUSE_SIZE, _PAUSE_SIZE)
-	_pause.position = Vector2(_PAUSE_X - _PAUSE_SIZE * 0.5, _ROW_Y - _PAUSE_SIZE * 0.5)
+	_pause.size = Vector2(_PAUSE_HIT_SIZE, _PAUSE_HIT_SIZE)
+	_pause.position = Vector2(_PAUSE_X - _PAUSE_HIT_SIZE * 0.5, _ROW_Y - _PAUSE_HIT_SIZE * 0.5)
+	_pause.visual_scale = _PAUSE_SIZE / _PAUSE_HIT_SIZE
 
 
 func _on_pause() -> void:
