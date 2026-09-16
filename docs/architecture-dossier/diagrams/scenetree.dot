@@ -1,0 +1,70 @@
+digraph SceneTree {
+  bgcolor="#0b0e1c";
+  rankdir=TB;
+  fontname="Helvetica";
+  nodesep=0.3;
+  ranksep=0.45;
+  node [fontname="Helvetica", fontsize=13, color="#ffd23f", fontcolor="#eef4ff", style=filled];
+  edge [color="#6f7fa8", fontname="Helvetica", fontsize=11, fontcolor="#8fa3c8"];
+
+  subgraph cluster_static {
+    label="pacman_map.tscn (fest verdrahtete Hauptszene)";
+    fontcolor="#ffd23f"; color="#453a1a"; style="rounded"; bgcolor="#181405";
+
+    Map [label="pacman_map : Node2D", fillcolor="#241d09", shape=box];
+
+    anchorUI [label="", shape=point, width=0.01, style=invis];
+    anchorLogic [label="", shape=point, width=0.01, style=invis];
+
+    Camera [label="camera\nCamera2D", fillcolor="#0d1226", shape=ellipse];
+    Tiles [label="tiles\nTileMapLayer", fillcolor="#0d1226", shape=ellipse];
+    Player [label="player : CharacterBody2D (player.gd)\n+ AnimatedSprite2D + CollisionShape2D*", fillcolor="#1f1a06", shape=box];
+    Pills [label="pills : Node2D (pills.gd)", fillcolor="#1f1a06", shape=box];
+    Ghosts [label="blinky / pinky / inky / clyde\nCharacterBody2D (ghost.gd) + Sprite + CollisionShape2D*", fillcolor="#2a1a10", shape=box];
+
+    Hud [label="hud : CanvasLayer\n(score/hi/level/ready, lives, items)", fillcolor="#1f1a06", shape=box];
+    TouchControls [label="touch_controls : CanvasLayer\n+ indicator + pause_btn", fillcolor="#1f1a06", shape=box];
+    Overlay [label="overlay (overlay_menu.gd)\nPause / Game Over / Win", fillcolor="#1f1a06", shape=box];
+    Settings [label="settings (settings_menu.gd)\nStart / Einstellungen / Hilfe", fillcolor="#1f1a06", shape=box];
+
+    Game [label="game : Node (game.gd)\nState-Machine · Waves · Scoring", fillcolor="#241d09", shape=box];
+    Audio [label="audio (sound_manager.gd)", fillcolor="#1f1a06", shape=box];
+
+    { rank=same; Camera; Tiles; Player; Pills; Ghosts; }
+    { rank=same; anchorUI; }
+    { rank=same; Hud; TouchControls; Overlay; Settings; }
+    { rank=same; anchorLogic; }
+    { rank=same; Game; Audio; }
+
+    Map -> Camera;
+    Map -> Tiles;
+    Map -> Player;
+    Map -> Pills;
+    Map -> Ghosts;
+    Map -> anchorUI [style=invis];
+    anchorUI -> Hud;
+    anchorUI -> TouchControls;
+    anchorUI -> Overlay;
+    anchorUI -> Settings;
+    anchorUI -> anchorLogic [style=invis];
+    anchorLogic -> Game;
+    anchorLogic -> Audio;
+  }
+
+  subgraph cluster_dynamic {
+    label="zur Laufzeit instanziiert";
+    fontcolor="#ff9d4d"; color="#4a2f1a"; style="rounded"; bgcolor="#241a10";
+
+    PillSprites [label="Sprite2D je Zelle\n(pill_small/big.png)", fillcolor="#2a1d10", shape=box];
+    Fruit [label="Sprite2D (Fruit)\ncherry .. key", fillcolor="#2a1d10", shape=box];
+    Popup [label="Label (Punkte-Popup)\nin hud eingehängt", fillcolor="#2a1d10", shape=box];
+  }
+
+  Pills -> PillSprites [label="_build()", style=dashed, color="#ff9d4d"];
+  Game -> Fruit [label="_spawn_fruit()", style=dashed, color="#ff9d4d"];
+  Game -> Popup [label="_spawn_text_popup()", style=dashed, color="#ff9d4d"];
+
+  note [shape=note, fillcolor="#10142c", color="#4db2ff", fontcolor="#c7d3ef", fontsize=10.5,
+        label="* CollisionShape2D ohne Area2D-Parent - keine Godot-Physik im Spiel.\ngame.gd fragt player_cell()/player_heading() aktiv ab und misst\nselbst den Abstand zu jedem Geist (_check_caught) statt Signale\nabzuwarten. Siehe Modul 02."];
+  Audio -> note [style=invis];
+}

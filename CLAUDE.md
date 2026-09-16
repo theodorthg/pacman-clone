@@ -91,3 +91,63 @@ Exit-Button im Start-Menü, Restart = Play, `build.sh` nachgerüstet.
   (Screenshot Start-Screen mit Exit-Button, Hilfe-Seite „GOAL" mit
   Illustration, Seiten-Punkte im Zoom als echte 7×7-Quadrate, Restart-Ablauf
   per Skript-Zustandsprüfung).
+
+## Technisches Architektur-Dossier (2026-09-16, automatisierter Lauf)
+
+`docs/architecture-dossier/` — ein druckbares Claude-Artifact nach demselben
+Muster wie Galagas Dossier (siehe die globale CLAUDE.md, Abschnitt
+„Technische Dokumentation als Claude-Artifact"): `index.html` als
+Artifact-Quelle, `build_standalone.py` für den Base64-Inline-PDF-Export,
+`prepare_assets.py` für Diagramm-/Bild-Aufbereitung, `diagrams/*.dot` für
+die Graphviz-Quellen. Inhalt speziell für Pacman (fünf Module): Steuerung
+(vier gleichwertige Eingabewege — Tastatur/Gamepad, Touch-Swipe, Maus-Klick
+mit `MazeGrid.find_path()`-BFS —, alle über dieselbe `_queued`-Warteschlange
+in `player.gd`), Szenenaufbau + das ungewöhnliche Kollisionsmodell (**keine
+Godot-Physik**: `player.gd`/`ghost.gd` sind `CharacterBody2D`, aber nirgends
+im Projekt ein `move_and_slide()` oder ein gesetzter
+`collision_layer`/`collision_mask` — jede „Kollision" ist ein
+Dictionary-Lookup gegen `MazeGrid` oder ein Distanz-/Segment-Check in
+`game.gd::_check_caught()`/`_swept_gap()`), Geister-KI (`ghost.gd`s
+Sechs-Zustands-Automat HOUSE→LEAVING→SCATTER/CHASE→FRIGHTENED→EYES, ein
+Skript für alle vier Persönlichkeiten, `_chase_target()`s vier
+Original-Arcade-Zielregeln inkl. Inky-Vektorverdopplung), Power-Pellets +
+Scoring (Geister-Fresskette 200/400/800/1600, geometrisch wachsende
+Extra-Leben-Schwelle), wichtige Signale (inkl. der Beobachtung, dass
+`score_changed` zwar emittiert, aber von niemandem abonniert ist — das HUD
+aktualisiert sich direkt).
+
+Zwei Graphviz-Diagramme: `scenetree.dot` (Szenenbaum von `pacman_map.tscn`,
+dreizeilig gruppiert über unsichtbare Anker-Nodes, weil die 11 direkten
+Kindnodes in einer Reihe unlesbar breit geraten wären) und `ghost_fsm.dot`
+(der Geister-Zustandsautomat als eigenes Modul 05 — bei Pacman naheliegender
+als ein UML-Klassendiagramm, weil die Zustandsmaschine der eigentliche
+Kern der Spiellogik ist).
+
+Zwei **echte** In-Game-Screenshots (`fig-chase.jpg`/`fig-frightened.jpg`)
+statt Platzhalter — mangels offenem Editor (parallel lief eine
+Galaga-Session mit eigenem `--editor`-Prozess, kein `godot-mcp-pro`-Zugriff
+auf dieses Projekt) per Wegwerf-`_capture.gd`/`_capture.tscn`
+(`pacman_map.tscn` laden, `settings.request_play()` aufrufen, ~7,5 s auf
+Blinky/Pinky im Chase warten, dann direkt `game._start_frightened()`
+aufrufen für den zweiten Shot) mit `godot --path . res://_capture.tscn --
+<out_dir>` (braucht `DISPLAY`, kein `--editor`-Prozess, daher unproblematisch
+neben der laufenden Galaga-Session) erzeugt, danach gelöscht (nicht
+committet, wie bei Galagas eigenem `_capture.gd`).
+
+Der „Dossier-Farben ⇄ Godot-Editor-Farben"-Umschalter für die Code-Panels
+(seit Galaga Standard-Angebot bei jedem technischen Dossier, siehe globale
+CLAUDE.md) ist von Anfang an dabei, inklusive Print-Unterstützung — der
+Umschalter-Zustand bleibt auch im PDF sichtbar (nur die Code-Panels wechseln
+auf das dunkle Editor-Aussehen, der Rest bleibt beim hellen Print-Schema).
+Die Editor-Farbwerte sind identisch mit denen im Galaga-Dossier (dieselbe
+Quelle `editor_data/editor_settings-4.7.tres` — ein globales, nicht
+projektspezifisches Setting) und wurden zur Sicherheit erneut direkt aus der
+Datei gegengeprüft, nicht aus dem Galaga-Dossier übernommen.
+
+Verifiziert wie bei Galaga per `google-chrome --headless --print-to-pdf`
+gegen die tatsächliche `file://`-Datei von
+`Pacman-Architektur-Dossier.html` (13 Seiten) + `pdftoppm`-Sichtprüfung aller
+Seiten, inklusive einer zweiten Prüfung mit vorab aktiviertem
+Syntax-Umschalter (Aktivierungs-Skript ans Dateiende angehängt statt eines
+`</body>`-String-Replace — siehe die entsprechende Testfalle im
+Galaga-Dossier-Log der globalen CLAUDE.md).

@@ -1,0 +1,32 @@
+digraph GhostFSM {
+  bgcolor="#0b0e1c";
+  rankdir=LR;
+  fontname="Helvetica";
+  node [fontname="Helvetica", fontsize=13, shape=box, style="filled,rounded", color="#ffd23f", fontcolor="#eef4ff", fillcolor="#1f1a06"];
+  edge [color="#6f7fa8", fontname="Helvetica", fontsize=11, fontcolor="#c7d3ef"];
+
+  HOUSE [label="HOUSE\ngeparkt / bobt\n(nur Blinky wartet\nschon vor der Tür)"];
+  LEAVING [label="LEAVING\nskriptete Ausgehbewegung\n_DOOR_IN -> _DOOR_OUT"];
+  SCATTER [label="SCATTER\nZiel: eigene Ecke\n(fixe Corner-Tile)", fillcolor="#0f2a2a", color="#5fe3a6"];
+  CHASE [label="CHASE\nZiel: personality-spezifisch\nrelativ zu Pac-Man", fillcolor="#2a1010", color="#ff6b6b"];
+  FRIGHTENED [label="FRIGHTENED\nlangsam, zufällige Abbiegungen,\nblau -> flackert weiß", fillcolor="#12203a", color="#4db2ff"];
+  EYES [label="EYES\nnur Augen, schnell direkt\nzur Haus-Mitte", fillcolor="#241a10", color="#ffb273"];
+
+  HOUSE -> LEAVING [label="release()\n(Dot-Zähler / dot_timeout)"];
+  LEAVING -> SCATTER [label="Warteschlange leer,\n_pending_state == wave-Modus"];
+  LEAVING -> CHASE [label="Warteschlange leer,\n_pending_state == wave-Modus"];
+  LEAVING -> FRIGHTENED [label="frighten() traf einen\nnoch aussteigenden Geist\n(_house_look_blue)", color="#4db2ff", fontcolor="#4db2ff"];
+
+  SCATTER -> CHASE [label="set_mode() - Wellen-Timer\n(game.gd _WAVES) + 180°-Kehre", dir=both];
+  SCATTER -> FRIGHTENED [label="frighten()\n(Power-Pille gegessen)\n+ 180°-Kehre", color="#4db2ff", fontcolor="#4db2ff"];
+  CHASE -> FRIGHTENED [label="frighten()\n+ 180°-Kehre", color="#4db2ff", fontcolor="#4db2ff"];
+
+  FRIGHTENED -> SCATTER [label="end_frighten()\n(Timer 0 ODER neue Welle\nunterbricht die Furcht)"];
+  FRIGHTENED -> CHASE [label="end_frighten()"];
+  FRIGHTENED -> EYES [label="get_eaten()\nPac-Man berührt\nden edlen Geist", color="#ffb273", fontcolor="#ffb273"];
+  LEAVING -> EYES [label="get_eaten()\n(is_edible() auch beim\nblauen Ausgehen wahr)", color="#ffb273", fontcolor="#ffb273", style=dashed];
+
+  EYES -> LEAVING [label="_revive_and_leave()\nHaus-Mitte erreicht - kein\nWarten, kein Blau, FIFO"];
+
+  { rank=same; SCATTER; CHASE; }
+}

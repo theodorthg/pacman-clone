@@ -1,0 +1,929 @@
+<title>Pacman Architektur-Dossier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#05060a;
+    --bg-2:#08070f;
+    --panel:#141026;
+    --panel-2:#1c1735;
+    --panel-line:#2c2650;
+    --accent:#ffd23f;
+    --accent-soft:rgba(255,210,63,.14);
+    --accent-line:rgba(255,210,63,.24);
+    --amber:#4db2ff;
+    --amber-soft:rgba(77,178,255,.14);
+    --good:#5fe3a6;
+    --text:#f5f1ff;
+    --text-dim:#a79fce;
+    --text-faint:#6c6491;
+    --code-bg:#0e0a1e;
+    --shadow:0 20px 60px -30px rgba(0,0,0,.7);
+    --maxw:790px;
+    color-scheme:dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 700px at 12% -10%, rgba(255,210,63,.08), transparent 60%),
+      radial-gradient(900px 600px at 100% 0%, rgba(77,178,255,.07), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size:16px;
+    line-height:1.65;
+    padding-inline:20px;
+    padding-block:0 80px;
+  }
+  a{color:var(--accent);}
+  h1,h2,h3{text-wrap:balance; font-family:"IBM Plex Sans",sans-serif; color:var(--text); margin:0;}
+  code,pre,.mono{font-family:"IBM Plex Mono","SFMono-Regular",monospace;}
+  img{max-width:100%; display:block;}
+  table{font-variant-numeric:tabular-nums;}
+
+  /* ---------- dots: a faint, static echo of the maze's own pill grid ---------- */
+  .stars{
+    position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5;
+    background-image:
+      radial-gradient(1.4px 1.4px at 8% 22%, #fff0b8 0, transparent 60%),
+      radial-gradient(1.4px 1.4px at 22% 68%, #cfe6ff 0, transparent 60%),
+      radial-gradient(1px 1px at 38% 12%, #ffffff 0, transparent 60%),
+      radial-gradient(1.4px 1.4px at 52% 82%, #fff0b8 0, transparent 60%),
+      radial-gradient(1px 1px at 68% 34%, #ffffff 0, transparent 60%),
+      radial-gradient(1.4px 1.4px at 78% 58%, #cfe6ff 0, transparent 60%),
+      radial-gradient(1px 1px at 91% 20%, #ffffff 0, transparent 60%),
+      radial-gradient(1.4px 1.4px at 95% 74%, #fff0b8 0, transparent 60%);
+    background-repeat:no-repeat;
+  }
+
+  .wrap{position:relative; z-index:1; max-width:1180px; margin-inline:auto;}
+
+  /* ---------- title block, modelled on an engineering drawing's stamp ---------- */
+  header.titleblock{
+    padding-block:44px 28px;
+    display:flex; flex-wrap:wrap; gap:28px; align-items:flex-end; justify-content:space-between;
+    border-bottom:1px solid var(--panel-line);
+  }
+  .titleblock__id{display:flex; align-items:center; gap:16px;}
+  .titleblock__id img{width:56px; height:56px; border-radius:14px; box-shadow:var(--shadow); border:1px solid var(--accent-line);}
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--accent); margin:0 0 8px;
+  }
+  h1.title{
+    font-family:"Orbitron",sans-serif; font-weight:800; font-size:clamp(28px,4.2vw,42px);
+    letter-spacing:.02em; line-height:1.05;
+    background:linear-gradient(180deg,#fff, #ffe9a8 65%, var(--accent));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .stamp{
+    font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--text-dim);
+    display:grid; grid-template-columns:auto auto; gap:4px 14px; border:1px solid var(--panel-line);
+    background:var(--panel); border-radius:10px; padding:12px 16px;
+  }
+  .stamp b{color:var(--text); font-weight:600;}
+  .stamp .k{color:var(--text-faint); text-transform:uppercase; letter-spacing:.08em; font-size:10.5px; align-self:center;}
+
+  .lede{max-width:var(--maxw); padding-block:22px 6px; color:var(--text-dim); font-size:16px;}
+  .lede strong{color:var(--text); font-weight:600;}
+
+  /* ---------- layout: sticky module rail + content column ---------- */
+  .layout{display:grid; grid-template-columns:200px minmax(0,1fr); gap:52px; padding-top:28px;}
+  nav.rail{position:sticky; top:24px; align-self:start; display:flex; flex-direction:column; gap:2px;}
+  nav.rail a{
+    display:flex; gap:10px; align-items:baseline; text-decoration:none; color:var(--text-dim);
+    font-size:13.5px; padding:8px 10px; border-radius:8px; border-left:2px solid transparent;
+  }
+  nav.rail a .n{font-family:"IBM Plex Mono",monospace; color:var(--text-faint); font-size:12px;}
+  nav.rail a:hover{background:var(--accent-soft); color:var(--text);}
+  nav.rail a.active{border-left-color:var(--accent); background:var(--accent-soft); color:var(--text);}
+  nav.rail a.active .n{color:var(--accent);}
+
+  main{min-width:0; max-width:var(--maxw);}
+
+  section.mod{padding-block:40px; border-top:1px solid var(--panel-line);}
+  section.mod:first-child{border-top:none; padding-top:6px;}
+  .mod__head{display:flex; gap:16px; align-items:baseline; margin-bottom:6px;}
+  .mod__num{
+    font-family:"Orbitron",sans-serif; font-weight:700; font-size:15px; color:var(--bg);
+    background:var(--accent); border-radius:6px; padding:3px 9px; letter-spacing:.03em;
+    box-shadow:0 0 0 1px var(--accent-line), 0 8px 18px -8px var(--accent-soft);
+  }
+  .mod h2{font-size:23px; font-weight:700; letter-spacing:.01em;}
+  .mod__sub{color:var(--text-faint); font-size:13px; margin:6px 0 22px; font-family:"IBM Plex Mono",monospace;}
+
+  p{margin:0 0 14px;}
+  h3{font-size:16.5px; font-weight:600; margin:26px 0 10px; color:var(--text);}
+  h3 .k{color:var(--accent); font-family:"IBM Plex Mono",monospace; font-size:13px; margin-right:8px;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px;}
+
+  /* ---------- module table (file/purpose listing, styled like a parts list) --- */
+  .partslist{width:100%; border-collapse:collapse; margin:8px 0 24px; font-size:14px;}
+  .partslist th{
+    text-align:left; font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--text-faint); font-weight:500; padding:0 12px 8px 0;
+    border-bottom:1px solid var(--panel-line);
+  }
+  .partslist td{padding:10px 12px 10px 0; border-bottom:1px solid rgba(44,38,80,.55); vertical-align:top;}
+  .partslist tr:last-child td{border-bottom:none;}
+  .partslist td:first-child{white-space:nowrap;}
+  .partslist a{font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:500;}
+
+  /* ---------- pinout-style table (layers, signals) ---------------------------- */
+  .pinout{width:100%; border-collapse:collapse; margin:8px 0 24px; font-size:13.5px;}
+  .pinout th{
+    text-align:left; font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--bg); background:var(--accent); padding:8px 12px;
+  }
+  .pinout th:first-child{border-radius:8px 0 0 0;}
+  .pinout th:last-child{border-radius:0 8px 0 0;}
+  .pinout td{padding:9px 12px; border-bottom:1px solid rgba(44,38,80,.6); background:var(--panel);}
+  .pinout tr:last-child td:first-child{border-radius:0 0 0 8px;}
+  .pinout tr:last-child td:last-child{border-radius:0 0 8px 0;}
+  .pinout code{color:var(--accent); font-size:12.5px;}
+  .pinout .tbl-wrap{overflow-x:auto;}
+
+  /* ---------- code console panel ---------------------------------------------- */
+  .code{
+    margin:14px 0 22px; border-radius:10px; overflow:hidden; border:1px solid var(--panel-line);
+    background:var(--code-bg); box-shadow:var(--shadow);
+  }
+  .code .tab{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:8px 14px; background:var(--panel-2); border-bottom:1px solid var(--panel-line);
+    font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--text-dim);
+  }
+  .code .tab .dots{display:flex; gap:5px;}
+  .code .tab .dots span{width:8px; height:8px; border-radius:50%; background:var(--panel-line);}
+  .code pre{margin:0; padding:16px 18px; overflow-x:auto;}
+  .code code{font-size:13px; line-height:1.62; color:#eee3ff; white-space:pre;}
+  .code .c1{color:var(--text-faint);}
+  .tbl-wrap{overflow-x:auto;}
+
+  /* ---------- experimental: real Godot 4.7 editor syntax colors ----------
+     Values pulled verbatim from this machine's own editor_data/
+     editor_settings-4.7.tres (text_editor/theme/highlighting/*), not
+     eyeballed — same source and same values as the Galaga dossier this one
+     is modelled on (global editor settings, not project-specific — see the
+     project CLAUDE.md entry for the exact source line). Screen-only
+     comparison toggle; @media print always neutralizes it back to the
+     dossier's own print palette regardless of toggle state, and the tab bar
+     / rest of the page never changes — only the code TEXT itself, since
+     that's the one readability question being tested. */
+  .syntax-toggle{
+    display:inline-flex; align-items:center; gap:10px; margin:14px 0 4px;
+    font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--text-dim);
+  }
+  .syntax-toggle button{
+    font-family:inherit; font-size:12px; letter-spacing:.02em; cursor:pointer;
+    background:var(--panel); color:var(--text-dim); border:1px solid var(--panel-line);
+    border-radius:7px; padding:6px 12px;
+  }
+  .syntax-toggle button[aria-pressed="true"]{ background:var(--accent); color:var(--bg); border-color:var(--accent); }
+  .syntax-toggle button:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  body.godot-syntax .code{ background:#1a1a1a; }
+  body.godot-syntax .code code{ color:rgba(255,255,255,.75); }
+  .gd-kf{color:#ff8ccc;}  /* control-flow keywords: if/elif/for/while/return/match/await */
+  .gd-kd{color:#ff7085;}  /* declaration keywords: var/const/func/class_name/extends/signal/and/or/not/in/as */
+  .gd-t {color:#42ffc2;}  /* types: int/float/bool/String/Vector2/… and any CapitalizedWord */
+  .gd-s {color:#ffeda1;}  /* string literals */
+  .gd-n {color:#a1ffe0;}  /* numbers */
+  .gd-fn{color:#57b2ff;}  /* function calls */
+  .gd-fd{color:#66e6ff;}  /* function definitions (right after "func ") */
+  .gd-a {color:#ffb273;}  /* annotations: @export, @onready */
+  .gd-c {color:rgba(255,255,255,.5);}  /* comments */
+
+  /* ---------- figure plates ---------------------------------------------------- */
+  figure.plate{
+    margin:22px 0; border:1px solid var(--panel-line); border-radius:12px; overflow:hidden;
+    background:var(--panel); box-shadow:var(--shadow);
+  }
+  figure.plate img{width:100%;}
+  figure.plate figcaption{
+    padding:10px 16px; font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.03em;
+    color:var(--text-dim); border-top:1px solid var(--panel-line);
+  }
+  figure.plate figcaption b{color:var(--accent); font-weight:600; margin-right:10px;}
+  .plate-row{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  @media (max-width:640px){.plate-row{grid-template-columns:1fr;}}
+
+  .legend{display:flex; gap:18px; flex-wrap:wrap; font-size:12.5px; color:var(--text-dim); margin:2px 0 18px;}
+  .legend span{display:inline-flex; align-items:center; gap:7px;}
+  .legend i{width:14px; height:3px; border-radius:2px; display:inline-block;}
+
+  .callout{
+    border-left:3px solid var(--amber); background:var(--amber-soft); border-radius:0 10px 10px 0;
+    padding:12px 16px; font-size:14px; color:var(--text-dim); margin:18px 0;
+  }
+  .callout b{color:var(--text);}
+
+  footer{
+    max-width:var(--maxw); margin-left:auto; margin-right:0; padding-top:26px; border-top:1px solid var(--panel-line);
+    color:var(--text-faint); font-family:"IBM Plex Mono",monospace; font-size:11.5px;
+  }
+  footer p{margin:4px 0;}
+
+  @media (max-width:880px){
+    .layout{grid-template-columns:1fr;}
+    nav.rail{
+      position:static; flex-direction:row; overflow-x:auto; gap:6px; padding-bottom:6px;
+      border-bottom:1px solid var(--panel-line); margin-bottom:8px;
+    }
+    nav.rail a{white-space:nowrap; border-left:none; border-bottom:2px solid transparent;}
+    nav.rail a.active{border-left:none; border-bottom-color:var(--accent);}
+    main{max-width:100%;}
+  }
+
+  /* ---------- print hint (screen only) ------------------------------------
+     Not a button: this page runs inside a sandboxed iframe (no "allow-modals"
+     in its sandbox token list), which blocks window.print() unconditionally
+     per the HTML spec — no script here can open the print dialog, so a
+     "Print" button would just silently do nothing. Ctrl/Cmd+P is a browser
+     shortcut the user triggers directly, not a script call from inside this
+     frame, so it isn't affected by that restriction. */
+  .print-hint{
+    font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--text-dim);
+    background:var(--panel); border:1px solid var(--panel-line); border-radius:8px;
+    padding:9px 14px; text-align:right; line-height:1.5;
+  }
+  .print-hint kbd{
+    font-family:inherit; font-size:11px; color:var(--text); background:var(--panel-2);
+    border:1px solid var(--panel-line); border-radius:4px; padding:1px 6px;
+  }
+
+  /* =====================================================================
+     PRINT — a separate "blueprint" palette: dark backgrounds don't print
+     (most browsers drop background colors unless "print backgrounds" is on,
+     which would leave this page's light text on bare white paper otherwise),
+     so print gets its own light, ink-appropriate scheme instead of trying to
+     reuse the on-screen dark one. Page-break rules keep headings glued to
+     their following paragraph, and figures/tables/code blocks intact.
+     ===================================================================== */
+  @media print{
+    @page{ size:A4; margin:16mm 15mm 18mm; }
+
+    /* Redefine the same tokens every component already reads from — this is
+       what actually makes the switch safe: a color hard-coded per selector
+       is easy to forget on one element, a token redefinition fixes every
+       consumer of --text/--accent/etc. at once. Dark backgrounds don't print
+       (browsers drop background-color unless "print backgrounds" is on,
+       which would leave this page's light text on bare paper), so print
+       gets its own light, ink-appropriate palette instead of reusing the
+       on-screen dark one — plus print-color-adjust below as a safety net
+       for the few places that still rely on a filled background. */
+    :root{
+      --bg:#f6f5fb; --bg-2:#f6f5fb; --panel:#ffffff; --panel-2:#f0eef9;
+      --panel-line:#cfc9e6; --accent:#8a6300; --accent-soft:transparent; --accent-line:#cfc9e6;
+      --amber:#0b5fa8; --amber-soft:#e5f1ff; --good:#1f7a4d;
+      --text:#171233; --text-dim:#4e4778; --text-faint:#6e6699;
+      --code-bg:#ffffff; --shadow:none;
+    }
+    *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+    .stars, nav.rail, .print-hint, .syntax-toggle{ display:none !important; }
+    /* Print honors the on-screen Godot-editor-colors toggle instead of
+       silently dropping it — a comparison feature that vanishes the one
+       time you actually commit to a PDF isn't much of a comparison. Only
+       the code panels switch; the rest of the print "blueprint" theme
+       (headings, tables, page background) stays exactly as designed either
+       way. Default (toggle off) keeps the print-safe light scheme; toggle
+       on reproduces the real dark editor look, ink included (needs the
+       print-color-adjust above to actually paint the dark fill). */
+    body:not(.godot-syntax) .code{ background:var(--code-bg) !important; }
+    body:not(.godot-syntax) .code code{ color:var(--text) !important; }
+    body:not(.godot-syntax) .gd-kf, body:not(.godot-syntax) .gd-kd,
+    body:not(.godot-syntax) .gd-t, body:not(.godot-syntax) .gd-s,
+    body:not(.godot-syntax) .gd-n, body:not(.godot-syntax) .gd-fn,
+    body:not(.godot-syntax) .gd-fd, body:not(.godot-syntax) .gd-a,
+    body:not(.godot-syntax) .gd-c{ color:inherit !important; }
+    body.godot-syntax .code{ background:#1a1a1a !important; border-color:#000; }
+    body.godot-syntax .code .tab{ background:#232323; color:rgba(255,255,255,.6); border-bottom-color:#000; }
+    body.godot-syntax .code code{ color:rgba(255,255,255,.75) !important; }
+    .layout{ display:block; }
+    main{ max-width:none; }
+    body{ padding:0; font-size:12.5px; background:var(--bg); } /* flat paper, no on-screen glow gradients */
+
+    h1.title{ background:none; -webkit-text-fill-color:currentColor; }
+    .code code{ color:var(--text); }  /* the one hard-coded (non-token) text color on screen */
+    /* a scrollbar means nothing on a static page — wrap long lines instead of
+       silently clipping them off the right edge of the sheet */
+    .code pre{ overflow-x:visible; }
+    .code pre, .code code{ white-space:pre-wrap; word-break:break-word; overflow-wrap:anywhere; }
+    .tbl-wrap{ overflow-x:visible; }
+
+    /* every module opens on a fresh sheet, so its heading can never be
+       stranded alone at the bottom of the previous one */
+    section.mod{ border-top:none; padding-block:0; break-before:page; page-break-before:always; }
+    section.mod:first-of-type{ break-before:avoid; page-break-before:avoid; }
+
+    /* these two rely on a FILLED background behind light text on screen —
+       kept as an outline/text-only look in print so they still read even if
+       a PDF path ignores print-color-adjust and drops the fill */
+    .mod__num{ background:none; color:var(--accent); border:1.4px solid var(--accent); }
+    .pinout th{ background:none; color:var(--accent); border-bottom:1.5px solid var(--accent); }
+
+    h2, h3, .mod__head{
+      break-after:avoid; page-break-after:avoid; break-inside:avoid; page-break-inside:avoid;
+    }
+    p, li{ orphans:3; widows:3; }
+
+    /* `overflow:hidden` (used on screen only to clip the rounded corners
+       around the tab bar / screenshot) makes Chrome's print engine ignore
+       break-inside:avoid on the element that has it — a well-known bug, and
+       the actual reason code blocks would otherwise still split mid-block
+       even with break-inside:avoid already in place. Print instead gets
+       square corners and no overflow clipping, so the box is a plain
+       fragmentable block Chrome can move to the next page as a whole. */
+    .code, figure.plate{ overflow:visible; border-radius:0; }
+    .code .tab{ border-radius:0; }
+    .code, figure.plate, .plate-row, .callout{ break-inside:avoid; page-break-inside:avoid; }
+    .code pre, .code .tab{ break-inside:avoid; page-break-inside:avoid; }
+    .code .tab{ break-after:avoid; page-break-after:avoid; }
+    .partslist tr, .pinout tr{ break-inside:avoid; page-break-inside:avoid; }
+
+    footer{ break-before:avoid; }
+  }
+</style>
+
+<div class="stars"></div>
+<div class="wrap">
+
+  <header class="titleblock">
+    <div class="titleblock__id">
+      <img src="assets/pacman-icon.png" alt="Pacman-Icon">
+      <div>
+        <p class="eyebrow">Technisches Dossier</p>
+        <h1 class="title">PACMAN<br>ARCHITEKTUR&#8209;DOSSIER</h1>
+      </div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px; align-items:flex-end;">
+      <p class="print-hint">Für die PDF: <kbd>Strg</kbd>/<kbd>Cmd</kbd>+<kbd>P</kbd><br>Ziel „Als PDF speichern"</p>
+      <div class="stamp">
+        <span class="k">Doc</span><b>PACMAN&#8209;ARCH&#8209;001</b>
+        <span class="k">Rev</span><b>v1.2</b>
+        <span class="k">Datum</span><b>2026&#8209;09&#8209;16</b>
+        <span class="k">Engine</span><b>Godot 4.7.1 · GL Compatibility</b>
+      </div>
+    </div>
+  </header>
+
+  <p class="lede">
+    Übersicht über <strong>Steuerung</strong>, <strong>Maze-Grid &amp; Bewegungslogik</strong>,
+    <strong>Geister-KI-Zustände</strong>, <strong>Power-Pellets</strong> und
+    <strong>Punktevergabe</strong> im Pacman-Projekt — fünf Module, von den einzelnen
+    GDScript-Dateien über den Szenenbaum bis zu den Signalen, die sie verbinden. Alle
+    Code-Ausschnitte und Screenshots stammen aus dem aktuellen Projektstand; die beiden
+    Diagramme in Modul&nbsp;02 und&nbsp;05 sind eigens dafür gezeichnet.
+  </p>
+
+  <div class="syntax-toggle">
+    Code-Farben:
+    <button type="button" id="syntaxToggleBtn" aria-pressed="false" onclick="toggleGodotSyntax()">Dossier ⇄ Godot-Editor (experimentell)</button>
+  </div>
+
+  <div class="layout">
+    <nav class="rail" id="rail">
+      <a href="#sec-01"><span class="n">01</span> Module</a>
+      <a href="#sec-02"><span class="n">02</span> Szenenbaum</a>
+      <a href="#sec-03"><span class="n">03</span> Kern-Code</a>
+      <a href="#sec-04"><span class="n">04</span> Signale</a>
+      <a href="#sec-05"><span class="n">05</span> Geister-FSM</a>
+    </nav>
+
+    <main>
+
+      <!-- ============================================================= 01 -->
+      <section class="mod" id="sec-01">
+        <div class="mod__head"><span class="mod__num">01</span><h2>GDScript-Dateien — Bedeutung &amp; Modularisierung</h2></div>
+        <p class="mod__sub">ein Koordinator, eine Grid-Wahrheit, vier baugleiche Geister</p>
+
+        <p>Anders als in einem Formations-Shooter gibt es hier keine Physik-Engine, die
+        Kollisionen meldet — <strong>alles</strong> hängt an einer einzigen, statischen
+        30&#215;30-Rastertabelle (<code>MazeGrid</code>), die sowohl Bewegung als auch
+        Kollision beschreibt. <code>game.gd</code> ist der einzige Ort, der Zustand,
+        Punkte und Geister-Koordination gleichzeitig kennt; <code>player.gd</code> und
+        <code>ghost.gd</code> wissen dagegen nichts voneinander — sie lesen sich nur
+        gegenseitig über schmale, gezielte Methoden aus (<code>player_cell()</code>,
+        <code>player_heading()</code>, <code>blinky_cell()</code>).</p>
+
+        <div class="tbl-wrap">
+        <table class="partslist">
+          <thead><tr><th>Bereich</th><th>Dateien</th><th>Zweck</th></tr></thead>
+          <tbody>
+          <tr>
+            <td>Einstieg /<br>Koordinator</td>
+            <td><a href="#" class="mono">game.gd</a></td>
+            <td>Einziger Ort, der den Rundenzustand kennt (Grace-Start → Wellen/Angriffe → Tod/Respawn → Level-Clear → Game&nbsp;Over/Win). Verbindet alle Signale, würfelt nichts selbst, ruft nur <code>Ghost</code>/<code>Player</code>-API auf.</td>
+          </tr>
+          <tr>
+            <td>Spielfigur</td>
+            <td class="mono">player.gd</td>
+            <td>Grid-Movement (Tile-Center-Gliding), vier gleichwertige Eingabewege (Tastatur/Gamepad, Touch-Swipe, Maus-Klick mit BFS-Pfad), eine gemeinsame Warteschlangen-Logik für alle.</td>
+          </tr>
+          <tr>
+            <td>Geister-KI</td>
+            <td class="mono">ghost.gd</td>
+            <td><strong>Ein</strong> Skript für alle vier Persönlichkeiten (<code>Personality</code>-Enum) — Zustandsautomat HOUSE/LEAVING/SCATTER/CHASE/FRIGHTENED/EYES, personality-spezifische Zielwahl in <code>_chase_target()</code>.</td>
+          </tr>
+          <tr>
+            <td>Maze-Daten</td>
+            <td class="mono">maze_grid_array.gd<br>(class_name MazeGrid)</td>
+            <td>Statische 30&#215;30-Kollisionstabelle als reines Datenskript (<code>RefCounted</code>, keine Node-Instanz) — Zell&#8596;Welt-Konvertierung, BFS-Pfadsuche für Mausklicks, Pillen-Layout-Generator, „No-Up"-Kreuzungen.</td>
+          </tr>
+          <tr>
+            <td>Pellets /<br>Punkte-Layer</td>
+            <td class="mono">pills.gd</td>
+            <td>Eigenständiger Collectible-Layer, komplett getrennt von <code>MazeGrid</code>s Kollisionsdaten — baut sein eigenes Dictionary aus <code>MazeGrid.build_pills()</code>.</td>
+          </tr>
+          <tr>
+            <td>UI / Menüs</td>
+            <td class="mono">overlay_menu.gd<br>settings_menu.gd<br>touch_controls.gd<br>swipe_indicator.gd<br>pause_button.gd</td>
+            <td>Pause/Game&nbsp;Over/Win (Overlay), Start-Screen/Einstellungen/Hilfe (Settings), Touch-Kompass + Pause-Button im reservierten Scoreboard-Band.</td>
+          </tr>
+          <tr>
+            <td>Daten /<br>Persistenz</td>
+            <td class="mono">hall_of_fame.gd<br>sound_manager.gd</td>
+            <td>Highscore-Liste (<code>user://</code>), Sound-Wiedergabe inkl. tempo-synchroner Pillen-„Wakka"-Rate.</td>
+          </tr>
+          </tbody>
+        </table>
+        </div>
+
+        <div class="plate-row">
+          <figure class="plate">
+            <img src="assets/fig-chase.jpg" alt="Blinky und Pinky jagen Pac-Man durchs Maze">
+            <figcaption><b>FIG.&nbsp;01</b> Echter Screenshot — Blinky (rot) und Pinky (rosa) im CHASE-Modus, kurz nach dem Rundenstart</figcaption>
+          </figure>
+          <figure class="plate">
+            <img src="assets/fig-controls.png" alt="Steuerungs-Hilfeseite">
+            <figcaption><b>FIG.&nbsp;02</b> Steuerungs-Hilfeseite aus dem Spiel selbst (<code>assets/graphics/help/keyboard.png</code>)</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- ============================================================= 02 -->
+      <section class="mod" id="sec-02">
+        <div class="mod__head"><span class="mod__num">02</span><h2>Szenenaufbau &amp; Bewegungsmodell</h2></div>
+        <p class="mod__sub">eine feste Szene — und, ungewöhnlich, keine Godot-Physik</p>
+
+        <p>Es gibt nur <strong>eine</strong> fest verdrahtete Hauptszene,
+        <code>pacman_map.tscn</code> (<code>run/main_scene</code>). Spieler und alle vier
+        Geister sitzen als eigene Kindnodes direkt darin — nicht dynamisch gespawnt wie
+        Galagas Gegnerwellen, weil ein Pacman-Maze eine feste, kleine Besetzung hat.
+        Zur Laufzeit kommen nur die Pillen-Sprites (aus <code>MazeGrid.build_pills()</code>),
+        die Frucht und kurze Punkte-Popups hinzu.</p>
+
+        <figure class="plate">
+          <img src="assets/fig-scenetree.png" alt="Szenenbaum- und Abhängigkeitsdiagramm">
+          <figcaption><b>FIG.&nbsp;03</b> Szenenbaum von pacman_map.tscn und wer welche Laufzeit-Node erzeugt</figcaption>
+        </figure>
+
+        <h3>Kein Area2D, keine Kollisionsschichten — reine Grid-/Distanz-Logik</h3>
+        <p>Der auffälligste Unterschied zu einem klassischen Godot-Shooter: <code>player.gd</code>
+        und <code>ghost.gd</code> sind zwar <code>CharacterBody2D</code>, aber <strong>keine
+        Zeile im Projekt ruft <code>move_and_slide()</code> auf</strong>, und nirgends ist
+        <code>collision_layer</code>/<code>collision_mask</code> gesetzt — die
+        <code>CollisionShape2D</code>-Kinder liegen zwar in den Szenen, laufen aber ins
+        Leere, weil kein <code>Area2D</code>/<code>PhysicsBody2D</code>-Signal sie je
+        auswertet. Bewegung ist reines <code>global_position +=</code>-Tweening zwischen
+        Zellmittelpunkten; „Kollision" bedeutet in diesem Projekt fast immer einen
+        Dictionary- oder Distanz-Check gegen <code>MazeGrid</code>, nicht ein
+        <code>area_entered</code>-Signal.</p>
+
+        <div class="tbl-wrap">
+        <table class="pinout">
+          <thead><tr><th>Ereignis</th><th>Erkennungsmechanik</th><th>Wo</th></tr></thead>
+          <tbody>
+          <tr><td>Spieler vs. Wand</td><td>Zug wird <em>vor</em> dem Betreten gegen <code>MazeGrid.is_free_for_player()</code> geprüft — eine „Kollision" mit einer Wand kann dadurch gar nicht erst passieren</td><td><code>player.gd::_can_leave()</code></td></tr>
+          <tr><td>Spieler vs. Pille</td><td>Dictionary-Lookup nach Gridzelle, ausgelöst vom <code>reached_cell</code>-Signal (feuert exakt bei Ankunft im Zellmittelpunkt)</td><td><code>Pills._on_player_reached_cell()</code></td></tr>
+          <tr><td>Spieler vs. Geist</td><td>gleiche Zelle <strong>oder</strong> ein geschwungener Segment-Abstand zwischen Vor-/Ist-Position beider Beteiligter (fängt ein „Durchkreuzen" zwischen zwei Frames ab)</td><td><code>game.gd::_check_caught()</code> / <code>_swept_gap()</code></td></tr>
+          <tr><td>Spieler vs. Frucht</td><td>simples <code>Vector2.distance_to() &lt; touch_eat</code>, jeden Frame geprüft solange eine Frucht liegt</td><td><code>game.gd::_check_fruit_eaten()</code></td></tr>
+          <tr><td>Geist vs. Geisterhaus</td><td><code>MazeGrid.is_ghost_house()</code> — nur in <code>EYES</code>/<code>LEAVING</code> betretbar, sonst wie eine Wand behandelt</td><td><code>ghost.gd::_can_enter()</code></td></tr>
+          </tbody>
+        </table>
+        </div>
+
+        <div class="callout">
+          <b>Warum das funktioniert:</b> Ein Pacman-Maze braucht keine Physik-Antwort
+          (Abprallen, Impulse, Stapeln) — nur „darf ich diese Zelle betreten?" und „bin
+          ich gerade hier?". Beides ist als reiner Datenabgleich schneller und
+          deterministischer zu beantworten als über Godots Physik-Server, und macht
+          <code>MazeGrid</code> außerdem ohne laufenden Baum testbar (<code>RefCounted</code>,
+          rein statische Funktionen).
+        </div>
+      </section>
+
+      <!-- ============================================================= 03 -->
+      <section class="mod" id="sec-03">
+        <div class="mod__head"><span class="mod__num">03</span><h2>Wesentliche Code-Ausschnitte</h2></div>
+        <p class="mod__sub">Steuerung → Grid-Movement → Geister-Ziele → Fangen → Pellets/Score</p>
+
+        <h3><span class="k">A</span>Steuerung — vier Eingabewege, eine gemeinsame Warteschlange</h3>
+        <p>Tastatur/Gamepad, Touch-Swipe und Maus-Klick landen alle im selben
+        <code>_queued</code>-Feld — ein früh gedrückter Richtungswechsel „wartet" bis zur
+        nächsten Kreuzung, statt pixelgenau in dem Moment kommen zu müssen:</p>
+        <div class="code">
+          <div class="tab"><span>player.gd — _poll_input()</span><span class="dots"><span></span><span></span><span></span></span></div>
+          <pre><code>func _poll_input() -&gt; void:
+    for action in _ACTION_DIR:
+        if Input.is_action_just_pressed(action):
+            _queued = _ACTION_DIR[action]
+            _queued_from_path = false
+            _mouse_path.clear()
+            return
+    if _queued != Vector2i.ZERO:
+        return
+    <span class="c1"># nichts gedrückt, keine Wende wartet: Mausklick-Pfad weiter abarbeiten</span>
+    if not _mouse_path.is_empty():
+        _queued = _mouse_path.pop_front()
+        _queued_from_path = true</code></pre>
+        </div>
+
+        <p>Ein Linksklick pathet über <code>MazeGrid.find_path()</code> (Breitensuche) zum
+        angeklickten Feld und speist das Ergebnis Schritt für Schritt in genau dieselbe
+        Warteschlange ein — ein Klick „zielt" dadurch, exakt wie ein Tastendruck, auf die
+        nächste freie Abzweigung voraus:</p>
+        <div class="code">
+          <div class="tab"><span>player.gd — _handle_mouse_click()</span><span class="dots"><span></span><span></span><span></span></span></div>
+          <pre><code>func _handle_mouse_click(world_pos: Vector2) -&gt; void:
+    var goal := MazeGrid.nearest_free_for_player(MazeGrid.world_to_cell(world_pos))
+    var start := _target if _moving else _cell
+    var path := MazeGrid.find_path(start, goal)   <span class="c1"># BFS, keine Geister-Vermeidung (Absicht)</span>
+    if path.is_empty():
+        return
+    _mouse_path = path
+    _queued = _mouse_path.pop_front()
+    _queued_from_path = true</code></pre>
+        </div>
+
+        <h3><span class="k">B</span>Grid-Movement &amp; Tile-Center-Gliding</h3>
+        <p>Sowohl Spieler als auch Geister gleiten linear zwischen zwei Zellmittelpunkten
+        und entscheiden erst <strong>am</strong> Mittelpunkt über die nächste Richtung —
+        die Umrechnung Welt&#8596;Grid ist eine einzige feste Formel:</p>
+        <div class="code">
+          <div class="tab"><span>maze_grid_array.gd — cell_to_world() / world_to_cell()</span><span class="dots"><span></span><span></span><span></span></span></div>
+          <pre><code>static func cell_to_world(cell: Vector2i) -&gt; Vector2:
+    return Vector2(
+        cell.x * CELL_SIZE + CELL_SIZE / 2.0,
+        (cell.y + ROW_OFFSET) * CELL_SIZE + CELL_SIZE / 2.0)
+
+static func world_to_cell(pos: Vector2) -&gt; Vector2i:
+    return Vector2i(
+        int(floor(pos.x / CELL_SIZE)),
+        int(floor(pos.y / CELL_SIZE)) - ROW_OFFSET)   <span class="c1"># ROW_OFFSET=7: Grid-Zeile 0 = Tile-Zeile 7</span></code></pre>
+        </div>
+
+        <div class="code">
+          <div class="tab"><span>player.gd — _advance()</span><span class="dots"><span></span><span></span><span></span></span></div>
+          <pre><code>func _advance(delta: float) -&gt; void:
+    var to_target := _target_pos - global_position
+    var step := speed * delta
+    if step &lt; to_target.length():
+        global_position += to_target.normalized() * step
+        return
+    <span class="c1"># Zellmitte erreicht -&gt; nächste Zelle wählen</span>
+    global_position = _target_pos
+    _cell = _target
+    reached_cell.emit(_cell)
+    if _queued != Vector2i.ZERO and _can_leave(_cell, _queued):
+        _dir = _queued; _queued = Vector2i.ZERO
+    elif not _can_leave(_cell, _dir):
+        _dir = Vector2i.ZERO; _moving = false; return
+    _set_target(_dir)</code></pre>
+        </div>
+
+        <h3><span class="k">C</span>Geister-KI — ein Skript, vier Persönlichkeiten</h3>
+        <p>An jeder Kreuzung wählt <code>_decide_dir()</code> die Nicht-Umkehr-Richtung,
+        deren Nachbarzelle dem aktuellen Zieltile am nächsten liegt (klassische
+        Arcade-Regel, Luftlinie, kein A*) — Frightened bricht das bewusst zugunsten
+        von Zufall:</p>
+        <div class="code">
+          <div class="tab"><span>ghost.gd — _decide_dir()</span><span class="dots"><span></span><span></span><span></span></span></div>
+          <pre><code>func _decide_dir(tile: Vector2i, incoming_dir: Vector2i) -&gt; Vector2i:
+    var banned := -incoming_dir   <span class="c1"># niemals umkehren (außer Sackgasse)</span>
+    if _state == State.FRIGHTENED:
+        var options: Array[Vector2i] = []
+        for d: Vector2i in _PREFER:
+            if d != banned and _passable(tile, d):
+                options.append(d)
+        return options[randi() % options.size()] if not options.is_empty() else banned
+
+    var goal := Vector2(_target_cell())
+    var no_up := MazeGrid.is_no_up(tile)
+    var best := Vector2i.ZERO
+    var best_dist := INF
+    for d: Vector2i in _PREFER:              <span class="c1"># Tie-Break: oben &gt; links &gt; unten &gt; rechts</span>
+        if d == banned or (no_up and d == Vector2i.UP) or not _passable(tile, d):
+            continue
+        var dist := Vector2(_next_cell(tile, d)).distance_squared_to(goal)
+        if dist &lt; best_dist:
+            best_dist = dist; best = d
+    return best if best != Vector2i.ZERO else banned</code></pre>
+        </div>
+
+        <p>Die vier Zieltile-Strategien reproduzieren bewusst die Original-Arcade-Regeln,
+        Überlauf-Bug inklusive (Inky/Pinky bei „nach oben"):</p>
+        <div class="code">
+          <div class="tab"><span>ghost.gd — _chase_target()</span><span class="dots"><span></span><span></span><span></span></span></div>
+          <pre><code>match personality:
+    Personality.BLINKY:
+        return pac                                          <span class="c1"># Shadow: direkt auf Pac-Man</span>
+    Personality.PINKY:
+        return _tiles_ahead(pac, head, 4)                   <span class="c1"># Ambusher: 4 Felder voraus</span>
+    Personality.INKY:
+        var pivot := _tiles_ahead(pac, head, 2)
+        return pivot * 2 - _game.blinky_cell()               <span class="c1"># Blinky-Vektor verdoppelt</span>
+    Personality.CLYDE:
+        var me := MazeGrid.world_to_cell(global_position)
+        if (pac - me).length_squared() &gt; 64:
+            return pac                                       <span class="c1"># &gt;8 Felder: wie Blinky</span>
+        return _scatter_target()                             <span class="c1"># sonst: Flucht in die eigene Ecke</span></code></pre>
+        </div>
+
+        <h3><span class="k">D</span>Fangen &amp; Essen — Segment-Abstand statt Area2D</h3>
+        <p>Weil nichts über Godots Physik läuft, misst <code>game.gd</code> selbst, jeden
+        Physik-Frame, den Abstand zwischen Pac-Man und jedem aktiven Geist — inklusive
+        eines geschwungenen Segment-Checks gegen das „Durchkreuzen" bei hoher
+        Relativgeschwindigkeit:</p>
+        <div class="code">
+          <div class="tab"><span>game.gd — _check_caught()</span><span class="dots"><span></span><span></span><span></span></span></div>
+          <pre><code>func _check_caught() -&gt; void:
+    var pac_now := _player.global_position
+    var pac_tile := MazeGrid.world_to_cell(pac_now)
+    var lethal: Ghost = null
+    for g in _ghosts:
+        if not (g.is_dangerous() or g.is_edible()):
+            continue
+        var same_tile := MazeGrid.world_to_cell(g.global_position) == pac_tile
+        var gap := _swept_gap(_pac_prev_pos, pac_now, _ghost_prev_pos.get(g, g.global_position), g.global_position)
+        if g.is_edible():
+            if same_tile or gap &lt; touch_eat:
+                _eat_ghost(g); _remember_positions(); return
+        elif same_tile or gap &lt; touch_kill:
+            lethal = g
+    if lethal != null:
+        _dying = true; _death_sequence()
+    _remember_positions()</code></pre>
+        </div>
+        <div class="code">
+          <div class="tab"><span>game.gd — _swept_gap()</span><span class="dots"><span></span><span></span><span></span></span></div>
+          <pre><code>func _swept_gap(a0: Vector2, a1: Vector2, b0: Vector2, b1: Vector2) -&gt; float:
+    if a0.distance_to(a1) &gt; 40.0 or b0.distance_to(b1) &gt; 40.0:
+        return a1.distance_to(b1)             <span class="c1"># Teleport (Tunnel/Reset) -&gt; nur Endpunkte vergleichen</span>
+    var cp := Geometry2D.get_closest_points_between_segments(a0, a1, b0, b1)
+    return cp[0].distance_to(cp[1])           <span class="c1"># kürzester Abstand der beiden Bewegungsstrecken</span></code></pre>
+        </div>
+
+        <figure class="plate">
+          <img src="assets/fig-frightened.jpg" alt="Blinky und Pinky blau/frightened, direkt nach einer Power-Pille">
+          <figcaption><b>FIG.&nbsp;04</b> Echter Screenshot — Blinky &amp; Pinky im FRIGHTENED-Zustand, ausgelöst genau über <code>_start_frightened()</code> unten</figcaption>
+        </figure>
+
+        <h3><span class="k">E</span>Power-Pellets &amp; Punktevergabe</h3>
+        <p>Pillen kennen nur ihre Art (klein/groß) — ob eine große Pille die Geister
+        verschreckt, entscheidet ausschließlich <code>game.gd</code> im Signal-Handler:</p>
+        <div class="code">
+          <div class="tab"><span>game.gd — _on_pill_eaten()</span><span class="dots"><span></span><span></span><span></span></span></div>
+          <pre><code>func _on_pill_eaten(kind: int, _cell: Vector2i) -&gt; void:
+    _dots_eaten += 1
+    _time_since_dot = 0.0
+    if kind == MazeGrid.PILL_BIG:
+        _add_score(POINTS_POWER_PILL)         <span class="c1"># 50</span>
+        _start_frightened()                   <span class="c1"># alle Geister: frighten() + 180°-Kehre</span>
+    else:
+        _add_score(points_per_dot)             <span class="c1"># 10, einstellbar</span>
+    if _dots_eaten == fruit_dot_1 or _dots_eaten == fruit_dot_2:
+        _spawn_fruit()</code></pre>
+        </div>
+
+        <p>Gefressene Geister zahlen in einer verdoppelnden Kette (200 → 400 → 800 → 1600),
+        die bei jeder neuen Power-Pille zurückgesetzt wird — und ab der ersten Extra-Leben-
+        Schwelle wächst der Abstand zur nächsten geometrisch statt linear:</p>
+        <div class="code">
+          <div class="tab"><span>game.gd — _eat_ghost() / _add_score()</span><span class="dots"><span></span><span></span><span></span></span></div>
+          <pre><code>func _eat_ghost(g: Ghost) -&gt; void:
+    _ghost_eat_chain += 1
+    var pts := POINTS_GHOST_BASE * (1 &lt;&lt; (_ghost_eat_chain - 1))   <span class="c1"># 200,400,800,1600</span>
+    _add_score(pts)
+    g.get_eaten()
+
+func _add_score(points: int) -&gt; void:
+    score += points
+    while _next_extra_life &gt; 0 and score &gt;= _next_extra_life:
+        lives += 1
+        _next_extra_life += int(_cur_extra_gap)
+        _cur_extra_gap *= extra_life_gap_mult   <span class="c1"># 2500 -&gt; +5000 -&gt; +10000 -&gt; +20000 …</span>
+    score_changed.emit(score)                   <span class="c1"># emittiert, aber aktuell von niemandem gehört —</span>
+    _update_score_label()                        <span class="c1"># das HUD-Label aktualisiert sich selbst, direkt</span></code></pre>
+        </div>
+      </section>
+
+      <!-- ============================================================= 04 -->
+      <section class="mod" id="sec-04">
+        <div class="mod__head"><span class="mod__num">04</span><h2>Wichtige Signale</h2></div>
+        <p class="mod__sub">wer meldet was an wen</p>
+
+        <div class="tbl-wrap">
+        <table class="pinout">
+          <thead><tr><th>Signal</th><th>Emitter</th><th>Empfänger</th><th>Bedeutung</th></tr></thead>
+          <tbody>
+          <tr>
+            <td><code>died</code></td><td>Player</td>
+            <td><code>Game._on_player_died</code></td>
+            <td>Leben verloren; startet Freeze → Todesanimation → Respawn-Sequenz</td>
+          </tr>
+          <tr>
+            <td><code>reached_cell(cell)</code></td><td>Player</td>
+            <td><code>Pills._on_player_reached_cell</code></td>
+            <td>Feuert bei jeder erreichten Zellmitte — treibt Pillen-Erkennung UND <code>desired_dir()</code> für den Touch-Kompass</td>
+          </tr>
+          <tr>
+            <td><code>pill_eaten(kind, cell)</code></td><td>Pills</td>
+            <td><code>Game._on_pill_eaten</code></td>
+            <td>Punkte, Fruit-Trigger bei bestimmten Zählerständen, Frightened-Start bei großer Pille</td>
+          </tr>
+          <tr>
+            <td><code>all_eaten</code></td><td>Pills</td>
+            <td><code>Game._on_all_eaten</code></td>
+            <td>Letzte Pille weg → Level-Clear-Sequenz (oder Sieg ab <code>MAX_LEVEL</code>)</td>
+          </tr>
+          <tr>
+            <td><code>score_changed(new_score)</code></td><td>Game</td>
+            <td><em>— (aktuell nicht verbunden)</em></td>
+            <td>Wird emittiert, aber von keinem Node abonniert; das Score-Label aktualisiert sich stattdessen direkt in <code>_update_score_label()</code> — als Erweiterungspunkt stehen gelassen</td>
+          </tr>
+          <tr>
+            <td><code>settings_requested</code> / <code>stats_requested</code> / <code>highscores_requested</code> / <code>help_requested</code> / <code>back_to_start_requested</code></td><td>Overlay (Pause-Menü)</td>
+            <td>Game</td>
+            <td>Navigation aus dem Pausenmenü heraus</td>
+          </tr>
+          <tr>
+            <td><code>started(config)</code> / <code>settings_changed(config)</code> / <code>closed</code> / <code>stats_requested</code> / <code>hof_requested</code></td><td>Settings (Start-Screen)</td>
+            <td>Game</td>
+            <td>„Play" gedrückt / Einstellungen live geändert / Panel geschlossen / Stats bzw. Hall of Fame angefragt</td>
+          </tr>
+          <tr>
+            <td><code>tapped</code></td><td>PauseButton</td>
+            <td><code>TouchControls._on_pause</code></td>
+            <td>Pause-Button im Scoreboard-Band angetippt/geklickt</td>
+          </tr>
+          </tbody>
+        </table>
+        </div>
+      </section>
+
+      <!-- ============================================================= 05 -->
+      <section class="mod" id="sec-05">
+        <div class="mod__head"><span class="mod__num">05</span><h2>Geister-Zustandsmaschine</h2></div>
+        <p class="mod__sub">ein Automat, vier Instanzen — HOUSE bis EYES und zurück</p>
+
+        <p>Jeder Geist durchläuft denselben Sechs-Zustands-Automaten; welcher Modus
+        (SCATTER/CHASE) gerade „gilt", kommt von außen (<code>game.gd</code>s
+        Wellen-Timer über <code>set_mode()</code>), alles andere entscheidet der Geist
+        selbst. Ein Moduswechsel UND das Auslösen von Frightened reißen den Geist mit
+        einer sofortigen 180°-Kehre aus seiner aktuellen Richtung — die einzigen beiden
+        Momente, in denen ein Geist überhaupt umkehrt.</p>
+
+        <figure class="plate">
+          <img src="assets/fig-ghost-fsm.png" alt="Geister-Zustandsautomat">
+          <figcaption><b>FIG.&nbsp;05</b> Zustandsautomat aus <code>ghost.gd</code> (Graphviz) — blaue Kanten: Furcht-Auslöser/-Ende, orange: Fangen/Wiederbeleben</figcaption>
+        </figure>
+
+        <div class="callout">
+          <b>Bemerkenswert:</b> <code>EYES</code> wartet nicht im Haus — sobald die Augen
+          die Tür-Mitte erreichen, revivet <code>_revive_and_leave()</code> den Geist
+          sofort wieder in <code>LEAVING</code>, nie blau, in der Reihenfolge, in der die
+          Augen ankamen (FIFO). Ein Spieler kann sich also nicht an der Tür postieren, um
+          denselben Geist ein zweites Mal im Vorbeigehen zu fressen.
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer>
+    <p>Pacman — Godot&nbsp;4.7.1 · GL&nbsp;Compatibility · erstellt von Claude Sonnet&nbsp;5</p>
+    <p>Quelle: aktueller Stand von projects/pacman/*.gd — kein archiviertes Wissen</p>
+  </footer>
+</div>
+
+<script>
+  // Experimental: recolor code text using the real Godot 4.7 default editor
+  // syntax palette (see the .gd-* CSS rules and the project CLAUDE.md entry
+  // for where the exact values came from), so the readability question can
+  // actually be judged instead of guessed at. A small hand-rolled tokenizer,
+  // not a real parser — good enough to color keywords/strings/numbers/
+  // comments/types/calls correctly for the GDScript shown here, not meant to
+  // be a general-purpose highlighter. Runs once per direction and caches
+  // both renderings on the element so flipping back and forth is instant.
+  var GD_FLOW = ["if","elif","else","for","while","return","break","continue","match","pass","await"];
+  var GD_DECL = ["var","const","func","class_name","extends","signal","enum","static",
+    "preload","load","and","or","not","in","is","as","void","self"];
+  var GD_TYPES = ["int","float","bool","String","Array","Dictionary","Vector2","Vector2i",
+    "Node2D","Area2D","Curve2D","Callable","Tween","Texture2D","PackedVector2Array",
+    "CircleShape2D","Color","CollisionShape2D","AudioStreamPlayer","Sprite2D","Ghost",
+    "CharacterBody2D","RefCounted","Geometry2D"];
+
+  function gdEscape(s){
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  function gdHighlight(src){
+    var out = "", i = 0, n = src.length;
+    var flow = {}, decl = {}, types = {};
+    GD_FLOW.forEach(function(w){ flow[w] = true; });
+    GD_DECL.forEach(function(w){ decl[w] = true; });
+    GD_TYPES.forEach(function(w){ types[w] = true; });
+    while (i < n){
+      var c = src[i];
+      if (c === "#"){
+        var j = src.indexOf("\n", i);
+        if (j === -1) j = n;
+        out += '<span class="gd-c">' + gdEscape(src.slice(i, j)) + '</span>';
+        i = j;
+        continue;
+      }
+      if (c === '"' || c === "'"){
+        var q = c, k = i + 1;
+        while (k < n && src[k] !== q) k++;
+        k = Math.min(k + 1, n);
+        out += '<span class="gd-s">' + gdEscape(src.slice(i, k)) + '</span>';
+        i = k;
+        continue;
+      }
+      if (c === "@"){
+        var a = i + 1;
+        while (a < n && /[A-Za-z_]/.test(src[a])) a++;
+        out += '<span class="gd-a">' + gdEscape(src.slice(i, a)) + '</span>';
+        i = a;
+        continue;
+      }
+      if (/[0-9]/.test(c) && !/[A-Za-z_0-9]/.test(src[i-1] || "")){
+        var m = i;
+        while (m < n && /[0-9.]/.test(src[m])) m++;
+        out += '<span class="gd-n">' + gdEscape(src.slice(i, m)) + '</span>';
+        i = m;
+        continue;
+      }
+      if (/[A-Za-z_]/.test(c)){
+        var w = i;
+        while (w < n && /[A-Za-z0-9_]/.test(src[w])) w++;
+        var word = src.slice(i, w);
+        var cls = null;
+        if (flow[word]) cls = "gd-kf";
+        else if (decl[word]) cls = "gd-kd";
+        else if (types[word]) cls = "gd-t";
+        else if (src[w] === "(") cls = (/func\s+$/.test(src.slice(Math.max(0, i - 5), i)) ? "gd-fd" : "gd-fn");
+        else if (/^[A-Z]/.test(word)) cls = "gd-t";
+        out += cls ? ('<span class="' + cls + '">' + gdEscape(word) + '</span>') : gdEscape(word);
+        i = w;
+        continue;
+      }
+      out += gdEscape(c);
+      i++;
+    }
+    return out;
+  }
+
+  function toggleGodotSyntax(){
+    var on = !document.body.classList.contains('godot-syntax');
+    document.body.classList.toggle('godot-syntax', on);
+    var btn = document.getElementById('syntaxToggleBtn');
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    document.querySelectorAll('.code code').forEach(function(el){
+      if (on){
+        if (el.dataset.gdHtml === undefined){
+          el.dataset.dossierHtml = el.innerHTML;
+          el.dataset.gdHtml = gdHighlight(el.textContent);
+        }
+        el.innerHTML = el.dataset.gdHtml;
+      } else if (el.dataset.dossierHtml !== undefined){
+        el.innerHTML = el.dataset.dossierHtml;
+      }
+    });
+  }
+</script>
+<script>
+  // Section-highlight in the module rail — a plain, motion-respecting toggle,
+  // not an animated scroll effect.
+  (function(){
+    var links = Array.from(document.querySelectorAll('#rail a'));
+    var sections = links.map(function(a){ return document.querySelector(a.getAttribute('href')); });
+    if (!('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        var idx = sections.indexOf(entry.target);
+        if (idx === -1) return;
+        if (entry.isIntersecting){
+          links.forEach(function(l){ l.classList.remove('active'); });
+          links[idx].classList.add('active');
+        }
+      });
+    }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+    sections.forEach(function(s){ if (s) io.observe(s); });
+  })();
+</script>
