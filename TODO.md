@@ -6,8 +6,10 @@ globale CLAUDE.md „TODO.md pro Projekt“). Neueste Einträge oben.
 ## Offen
 
 - [ ] Im Arbeitsverzeichnis liegen fremde, nicht committete Änderungen
-      (Dateirechte 644→755 bei fast allen Dateien, `project.godot` ohne
-      die drei MCP-Autoload-Zeilen, `.claude/launch.json`) — prüfen/aufräumen.
+      (Dateirechte 644→755 bei fast allen Dateien, `.claude/launch.json`,
+      untracked PDFs/Dossier-`.import`s) — prüfen/aufräumen. (Die fehlenden
+      MCP-Autoload-Zeilen in `project.godot` sind seit dem Splash-Commit
+      wieder drin.)
 
 ## Erledigt
 
