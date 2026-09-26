@@ -13,6 +13,11 @@ globale CLAUDE.md „TODO.md pro Projekt“). Neueste Einträge oben.
 
 ## Erledigt
 
+- [x] 2026-09-27 Android-System-Startbildschirm (vor dem Splash) einheitlich
+      reines Weiß: `splash_screen/icon` = transparentes
+      `assets/icon/android_splash_blank.png`, `branding_image` leer (Nutzer-
+      wunsch, ohne Gradle-Build; Hintergrundfarbe ließe sich nur per Gradle
+      ändern).
 - [x] 2026-09-26 Splash mit Fake-Ladebalken (`splash.gd`) aus der
       vorhandenen Grafik `splashscreen.jpeg`, Boot-Splash gesetzt; nur beim
       ersten App-Start.
