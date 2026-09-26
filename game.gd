@@ -249,6 +249,13 @@ func _ready() -> void:
 		if _auto_start_next_run:
 			_auto_start_next_run = false
 			_settings.call_deferred("request_play")
+		elif not Splash.shown:
+			# first launch only: splash + fake loading bar (global CLAUDE.md
+			# #11), tree paused meanwhile, then the start screen
+			get_tree().paused = true
+			var splash := Splash.new()
+			add_child(splash)
+			splash.done.connect(func(): _settings.open_start(), CONNECT_ONE_SHOT)
 		else:
 			_settings.call_deferred("open_start")
 	else:

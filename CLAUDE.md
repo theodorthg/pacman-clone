@@ -151,3 +151,16 @@ Seiten, inklusive einer zweiten Prüfung mit vorab aktiviertem
 Syntax-Umschalter (Aktivierungs-Skript ans Dateiende angehängt statt eines
 `</body>`-String-Replace — siehe die entsprechende Testfalle im
 Galaga-Dossier-Log der globalen CLAUDE.md).
+
+## Splash mit Fake-Ladebalken (Stand 2026-09-26)
+
+`splash-screen.png` (960×1280, 3:4, Hintergrund `#050716`) ist aus der
+vorhandenen Nutzer-Grafik `splashscreen.jpeg` („PAC-CLONE ADVENTURE“)
+erzeugt: `magick splashscreen.jpeg -resize 960x1280 -background "#050716"
+-gravity center -extent 960x1280 -strip splash-screen.png`. Boot-Splash
+(0,5 s) + `splash.gd` (aus mario-clone portiert): Bild mit gelbem
+Fake-Ladebalken 3 s, dann Start-Screen; überspringbar. **Nur beim ersten
+App-Start** (`Splash.shown` ist `static` und überlebt die Szenen-Reloads,
+die pacman für jeden neuen Lauf macht); `game.gd` pausiert den Tree
+währenddessen. Offene Punkte sammelt ab jetzt `TODO.md`.
+
