@@ -29,7 +29,7 @@ gegenseitig in die Quere, siehe globale CLAUDE.md). Per `preview_start`
 (Konfigname `pacman-web`) im Claude-Browser-Panel öffnen, oder der Nutzer
 direkt in einem echten Browser unter `http://localhost:8098/`. Das
 In-App-Panel hat kein WebGL2 → für eigene Checks `chrome-devtools`-MCP
-(`-s local` registriert, `mcp__chrome-devtools__*`) als Fallback.
+(global registriert, `mcp__chrome-devtools__*`) als Fallback.
 
 ## Playtest-Runde (2026-09-14): bildbasierte Hilfe, Seiten-Punkte-Fix,
 Exit-Button im Start-Menü, Restart = Play, `build.sh` nachgerüstet.
