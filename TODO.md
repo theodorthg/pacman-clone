@@ -12,6 +12,36 @@ globale CLAUDE.md „TODO.md pro Projekt“). Neueste Einträge oben.
       MCP-Autoload-Zeilen in `project.godot` sind seit dem Splash-Commit
       wieder drin.)
 
+Ideen für später (Einschätzung 2026-10-03, noch nicht beauftragt):
+- [ ] Mehr als ein Labyrinth (wie Ms. Pac-Man): 4–6 eigene Labyrinthe,
+      Wechsel alle paar Level, je eigene Farbe/Musik; Labyrinthe als
+      ASCII-Raster aus einem Generator (wie make_levels.py bei
+      mario-clone), Selbsttest prüft Erreichbarkeit aller Punkte.
+- [ ] Zwischenspiele (Cutscenes) nach Level 2/5/9, wechselnde Früchte
+      als Bonus, Geisterverhalten je Labyrinth leicht anders.
+- [ ] Spielstand/Continue ab dem erreichten Labyrinth.
+- [ ] 2 Spieler abwechselnd (wie der Automat) — billig, falls gewünscht.
+- Gleichzeitig zu zweit (beide im selben Labyrinth, sich nach einer
+  Kraftpille gegenseitig fressen — „Battle Royale“-Art) wäre möglich,
+  ist aber mit Swipe-Steuerung nur per Netz sinnvoll.
+- Empfehlung: zuerst mehr Labyrinthe (Einzelspieler), Mehrspieler nur
+  abwechselnd und niedrig priorisiert.
+
+Gemeinsam für die Serie (Vorlage: mario-clone v1.6–v1.9):
+- [ ] Bausteine aus mario-clone übernehmen statt neu erfinden: `CoopInput`
+      + Beitreten-Bildschirm (jeder drückt A auf seinem Gerät),
+      `NetLink`/`NetHost`/`NetClient` (Host rechnet, Gast zeigt; LAN +
+      Online), Team-Eintrag in der Bestenliste, Spielstand/Continue,
+      F12-Screenshot.
+- [ ] Ein Relay für alle Spiele: `server/relay.js` um eine Spiel-Kennung
+      in „host“/„join“ erweitern (sonst landet ein Galaga-Gast in einem
+      Mario-Raum), Pfad bleibt `wss://broesel.net/mario-relay` oder ein
+      neutraler Name.
+- Hinweise: Hochkant-Spiele auf dem Handy zu zweit nur per Netz (zwei
+  Leute an einem Handy-Bildschirm ist unpraktisch); lokal zu zweit am PC
+  (geteilte Tastatur / zwei Pads) bzw. im Browser. Das RG552 kann wegen
+  des kaputten Bluetooth kein zweites Pad.
+
 ## Erledigt
 
 - [x] 2026-09-29 itch.io jetzt per `butler` in die Channels linux / android / windows / web (`theodorthg/pac-clone`, wie bei mario-clone); Patch-Release v1.2.1: Stand seit v1.2 (Splash mit Ladebalken, weißer Android-Startbildschirm) — damit Windows-Release und itch.io aktuell sind.
