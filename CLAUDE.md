@@ -195,3 +195,12 @@ währenddessen. Offene Punkte sammelt ab jetzt `TODO.md`.
   um `R` an gerundeten Enden kürzen. Außerhalb des Gitters zählt als frei
   (= Clear-Color, die Korridorfarbe). Die `tiles`-TileMapLayer bleibt in der
   Szene, ist aber unsichtbar.
+- **Netz-Züge (v1.7)**: `turns_net.gd` (`TurnsNet`, Nachrichten `cfg`/`state`/
+  `turn_end`) über `net_link.gd` (Kopie aus tetris; `GAME="pacman"`,
+  `MAGIC="PACMAN-LAN-1"`, Env `PACMAN_RELAY`, `application/config/relay_url` in
+  project.godot). UI = „Game mode“-Panel in `settings_menu.gd` (`_mode_screen()`).
+  `Game._net_*`: jedes Gerät spielt nur seine Züge (`_net_waiting` sperrt
+  `_physics_process`), der Gegner-Stand kommt aus `_ps[remote]`. Test:
+  `tools/nettest.gd` (host/guest [online]); lokaler Relay: `cd ../mario-clone/
+  server && PORT=8765 node relay.js`. **Nicht `pkill -f "node relay.js"`** —
+  trifft die eigene Shell.

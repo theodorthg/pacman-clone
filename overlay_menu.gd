@@ -339,6 +339,8 @@ func _fill_stats(d: Dictionary, show_hof: bool = false) -> void:
 		_hof_queue.clear()
 		if scores.size() > 1:
 			for i in scores.size():
+				if d.has("local") and i != int(d["local"]):
+					continue   # network game: everyone enters only his own score
 				_hof_queue.append({"p": i, "score": int(scores[i]), "level": int(d.get("levels", [1, 1])[i])})
 		else:
 			_hof_queue.append({"p": 0, "score": int(d.get("score", 0)), "level": int(d.get("level", 1))})

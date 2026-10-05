@@ -9,8 +9,8 @@
   </defs>
   <rect width="900" height="980" fill="url(#bg)"/>
   <rect x="14" y="14" width="872" height="952" rx="18" fill="none" stroke="#fff24d" stroke-opacity="0.20" stroke-width="2"/>
-  <text x="450" y="110" font-size="34" fill="#eef4ff" font-weight="700" text-anchor="middle">Start screen: 2 Players (turns)</text>
-  <text x="450" y="148" font-size="22" fill="#8fa3c8" text-anchor="middle">tap the 1 Player button to switch</text>
+  <text x="450" y="110" font-size="34" fill="#eef4ff" font-weight="700" text-anchor="middle">Game mode: 2 Players (turns)</text>
+  <text x="450" y="148" font-size="22" fill="#8fa3c8" text-anchor="middle">start screen &gt; Mode</text>
   <rect x="40" y="200" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
   <rect x="80" y="250" width="300" height="230" rx="18" fill="#1c2244" stroke="#ffe14d" stroke-width="3"/>
   <text x="230" y="300" font-size="30" fill="#ffe14d" font-weight="700" text-anchor="middle">PLAYER 1</text>
@@ -31,8 +31,9 @@
   <text x="450" y="620" font-size="22" fill="#8fa3c8" text-anchor="middle">("P2 READY!"). Everyone keeps his own progress.</text>
   <rect x="40" y="670" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
   <text x="450" y="725" font-size="26" fill="#eef4ff" text-anchor="middle">A player with no lives left is out - the other</text>
-  <text x="450" y="760" font-size="26" fill="#eef4ff" text-anchor="middle">one keeps going until the game is over.</text>
+  <text x="450" y="760" font-size="26" fill="#eef4ff" text-anchor="middle">one keeps going. Both scores reach the Hall of Fame.</text>
   <rect x="40" y="810" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
-  <text x="450" y="865" font-size="26" fill="#fff24d" font-weight="700" text-anchor="middle">Both scores can enter the Hall of Fame</text>
-  <text x="450" y="900" font-size="22" fill="#8fa3c8" text-anchor="middle">- you type one name after the other.</text>
+  <text x="450" y="860" text-anchor="middle" font-size="26" fill="#fff24d" font-weight="700">Each on their own device?</text>
+  <text x="450" y="896" text-anchor="middle" font-size="22" fill="#8fa3c8">Mode &gt; Online (4-letter code) or Wi-Fi / LAN.</text>
+  <text x="450" y="928" text-anchor="middle" font-size="22" fill="#8fa3c8">You watch the other's score while waiting.</text>
 </svg>

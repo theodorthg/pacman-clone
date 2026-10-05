@@ -198,6 +198,14 @@ var _players: int = 1
 var _cur: int = 0
 var _ps: Array = []   ## [{score, lives, level, dots, pills, next_extra, extra_gap, global_on, global_n, alive}]
 
+## --- two players on two devices (TurnsNet: online relay or Wi-Fi/LAN) ------
+## Each device simulates only its OWN turns; `_ps[remote]` is fed by messages.
+var _net: TurnsNet
+var _net_local: int = 0          ## 0 = host (player 1, starts), 1 = guest
+var _net_waiting: bool = false   ## the other player is on turn
+var _net_tick: float = 0.0
+var _net_label: Label
+
 var _pac_prev_pos: Vector2
 var _ghost_prev_pos: Dictionary = {}
 
@@ -526,6 +534,8 @@ func _on_settings_chosen(cfg: Dictionary) -> void:
 	_configuring = false
 	_show_ready(true)
 	_sfx("play_start")
+	if cfg.get("net") is TurnsNet:
+		_net_setup(cfg["net"], str(cfg.get("net_role", "host")))
 
 
 ## Push a config dict onto the live game. `set_lives` is only true for a fresh
@@ -566,8 +576,13 @@ func _physics_process(delta: float) -> void:
 		if _freeze_left <= 0.0:
 			_set_actors_frozen(false)
 		return
-	if _configuring or _dying or _game_over or _won or _level_clearing:
+	if _configuring or _dying or _game_over or _won or _level_clearing or _net_waiting:
 		return
+	if _net and _started:
+		_net_tick += delta
+		if _net_tick >= 0.5:
+			_net_tick = 0.0
+			_net.send_state(score, lives, current_level)
 	if not _started:
 		_grace_t += delta
 		if _player.was_steered() or _grace_t >= start_grace:
@@ -926,6 +941,9 @@ func _on_player_died() -> void:
 	lives -= 1
 	_refresh_lives()
 	_remove_fruit()           # a fruit on screen at the moment of death is lost
+	if _net != null:
+		_net_after_death()
+		return
 	var next := _next_player_after_death()
 	if next < 0:
 		_end_game()
@@ -1035,6 +1053,8 @@ func _game_stats() -> Dictionary:
 			levels.append(current_level if live else int(_ps[i]["level"]))
 		d["scores"] = scores
 		d["levels"] = levels
+		if _net != null:
+			d["local"] = _net_local
 	return d
 
 
@@ -1170,6 +1190,130 @@ func _show_ready(on: bool, text: String = "") -> void:
 
 
 # --- two players, alternating ------------------------------------------
+
+# --- two players on two devices ------------------------------------------
+
+func _net_setup(net: TurnsNet, role: String) -> void:
+	_net = net
+	_net_local = 0 if role == "host" else 1
+	_cur = _net_local
+	_update_player_labels()
+	_net.state_received.connect(_on_net_state)
+	_net.turn_end_received.connect(_on_net_turn_end)
+	_net.left.connect(_on_net_left)
+	if _hud:
+		_net_label = Label.new()
+		_net_label.position = Vector2(20, 62)
+		_net_label.add_theme_font_size_override("font_size", 12)
+		_net_label.add_theme_color_override("font_color", Color(0.8, 0.9, 1.0))
+		_hud.add_child(_net_label)
+	_update_net_label()
+	if _net_local == 1:
+		_net_wait(true)   # the host (player 1) begins
+
+
+func _net_remote() -> int:
+	return 1 - _net_local
+
+
+func _update_net_label() -> void:
+	if _net_label == null:
+		return
+	var r: Dictionary = _ps[_net_remote()]
+	_net_label.text = "P%d  %d  x%d  L%d%s" % [_net_remote() + 1, int(r["score"]), maxi(0, int(r["lives"])),
+		int(r["level"]), "" if bool(r["alive"]) else "  OUT"]
+
+
+func _net_wait(on: bool) -> void:
+	_net_waiting = on
+	if on:
+		_sfx("stop_all")
+		_player.set_physics_process(false)
+		_show_ready(true, "P%d IS PLAYING" % (_net_remote() + 1))
+
+
+## It's my turn again (the other player lost a life / is out / left).
+func _net_resume() -> void:
+	_net_wait(false)
+	_show_ready(true, "P%d READY!" % (_net_local + 1))
+	await get_tree().create_timer(respawn_ready).timeout
+	if _game_over or not is_inside_tree():
+		return
+	_show_ready(false)
+	_player.set_physics_process(true)
+	for g in _ghosts:
+		g.set_physics_process(true)
+	_dying = false
+	_begin_run()
+
+
+func _net_after_death() -> void:
+	var alive := lives > 0
+	_ps[_net_local]["alive"] = alive
+	_ps[_net_local]["lives"] = maxi(0, lives)
+	var remote_alive := other_alive_state(_net_remote())
+	if not alive and not remote_alive:
+		_net.send_turn_end(score, 0, current_level, false)
+		_end_game()
+		return
+	reset_after_death()
+	if remote_alive:
+		_net.send_turn_end(score, maxi(0, lives), current_level, alive)
+		_dying = false
+		_net_wait(true)
+		return
+	# the other player is out: carry on with my own next life
+	_show_ready(true, "P%d READY!" % (_net_local + 1))
+	await get_tree().create_timer(respawn_ready).timeout
+	if _game_over or not is_inside_tree():
+		return
+	_show_ready(false)
+	_player.set_physics_process(true)
+	for g in _ghosts:
+		g.set_physics_process(true)
+	_dying = false
+	_begin_run()
+
+
+func _net_apply_remote(d: Dictionary) -> void:
+	var r: Dictionary = _ps[_net_remote()]
+	r["score"] = int(d.get("score", r["score"]))
+	r["lives"] = int(d.get("lives", r["lives"]))
+	r["level"] = int(d.get("level", r["level"]))
+	if d.has("alive"):
+		r["alive"] = bool(d["alive"])
+	_update_net_label()
+
+
+func _on_net_state(d: Dictionary) -> void:
+	_net_apply_remote(d)
+
+
+func _on_net_turn_end(d: Dictionary) -> void:
+	_net_apply_remote(d)
+	if _game_over or not _net_waiting:
+		return
+	if lives > 0 and bool(_ps[_net_local]["alive"]):
+		_net_resume()
+	elif not other_alive_state(_net_remote()):
+		_net_wait(false)
+		_end_game()
+
+
+func _on_net_left() -> void:
+	var r: Dictionary = _ps[_net_remote()]
+	r["alive"] = false
+	_update_net_label()
+	_spawn_text_popup(Vector2(150, 540), "OTHER PLAYER LEFT", Color(1, 0.6, 0.4))
+	if _game_over:
+		return
+	if _net_waiting:
+		if lives > 0 and bool(_ps[_net_local]["alive"]):
+			_net_resume()
+		else:
+			_net_wait(false)
+			_end_game()
+
 
 func _fresh_state(n_lives: int) -> Dictionary:
 	return {

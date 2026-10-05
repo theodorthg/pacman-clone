@@ -86,10 +86,17 @@ var _help_page: int = 0
 var _help_touch_id: int = -1
 var _help_touch_x: float = 0.0
 const _HELP_SWIPE_MIN := 40.0
-## Start-screen toggle "1 Player" / "2 Players" (alternating turns), built in
-## code right below Play; persisted as "players" in section "s".
+## Start-screen "Mode" button (built in code right below Play): opens a panel
+## to pick 1 player / 2 players taking turns on this device / the same over the
+## network (online relay or Wi-Fi/LAN, each on their own device).
+## `_players` (1/2) is the persisted local choice ("players" in section "s").
 var _players: int = 1
-var _players_btn: Button
+var _mode_btn: Button
+var _mode_panel: VBoxContainer
+var _mode_screen_name: String = ""
+var _net: TurnsNet
+var _ip_text: String = ""
+var _lan_hosts: Dictionary = {}
 ## "Continue (Level N)": start a new run at the first level of the furthest maze
 ## reached so far (checkpoint written by game.gd, section "progress").
 var _continue_btn: Button
@@ -107,15 +114,31 @@ func _ready() -> void:
 	_audio = get_node_or_null(^"../audio")
 
 	_play_btn.pressed.connect(func() -> void: _on_play(1))
-	_players_btn = _help_btn.duplicate() as Button
-	_players_btn.name = "players_btn"
-	_root.add_child(_players_btn)
-	_root.move_child(_players_btn, _play_btn.get_index() + 1)
-	_players_btn.pressed.connect(func() -> void:
-		_players = 3 - _players
-		_refresh_players_btn()
-		_save(_read()))
-	_refresh_players_btn()
+	_mode_btn = _help_btn.duplicate() as Button
+	_mode_btn.name = "mode_btn"
+	_root.add_child(_mode_btn)
+	_root.move_child(_mode_btn, _play_btn.get_index() + 1)
+	_mode_btn.pressed.connect(func() -> void: _mode_screen("menu"))
+	_mode_panel = VBoxContainer.new()
+	_mode_panel.name = "mode_panel"
+	_mode_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_mode_panel.add_theme_constant_override("separation", 14)
+	_mode_panel.custom_minimum_size = Vector2(380, 0)
+	_mode_panel.visible = false
+	_root.get_parent().add_child(_mode_panel)
+	_net = TurnsNet.new()
+	add_child(_net)
+	_net.room_ready.connect(func(code: String) -> void: _mode_screen("wait", {"code": code}))
+	_net.connected.connect(_on_net_connected)
+	_net.cfg_received.connect(_on_net_cfg)
+	_net.failed.connect(func(t: String) -> void:
+		_net.cancel()
+		_mode_screen("info", {"text": t}))
+	_net.hosts_changed.connect(func(h: Dictionary) -> void:
+		_lan_hosts = h
+		if _mode_panel.visible and _mode_screen_name == "lan_join":
+			_mode_screen("lan_join", {"keep_focus": true}))
+	_refresh_mode_btn()
 	_continue_btn = _help_btn.duplicate() as Button
 	_continue_btn.name = "continue_btn"
 	_root.add_child(_continue_btn)
@@ -169,7 +192,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not (event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel")):
 		return
 	get_viewport().set_input_as_handled()
-	if _sound.visible:
+	if _mode_panel.visible:
+		_mode_back()
+	elif _sound.visible:
 		_show_params()
 	elif _help.visible:
 		_back_from_help()
@@ -210,7 +235,7 @@ func open_params_from_pause() -> void:
 # --- navigation -------------------------------------------------------
 
 func _show(panel: Control) -> void:
-	for p: Control in [_root, _panel, _sound, _help]:
+	for p: Control in [_root, _panel, _sound, _help, _mode_panel]:
 		p.visible = (p == panel)
 	var first: Control = {
 		_root: _play_btn, _panel: _sound_btn, _sound: _sound_back, _help: _help_done,
@@ -308,8 +333,235 @@ func _refresh_continue_btn() -> void:
 	_continue_btn.text = "Continue (Level %d)" % lvl
 
 
-func _refresh_players_btn() -> void:
-	_players_btn.text = "2 Players (turns)" if _players == 2 else "1 Player"
+func _refresh_mode_btn() -> void:
+	_mode_btn.text = "Game mode: 2 Players (turns)" if _players == 2 else "Game mode: 1 Player"
+
+
+# --- mode panel (1 / 2 players, network) -----------------------------------
+
+func _m_clear() -> void:
+	for c in _mode_panel.get_children():
+		_mode_panel.remove_child(c)
+		c.queue_free()
+
+
+func _m_title(text: String, size: int = 30) -> void:
+	var l := $center/panel_frame/inner/root/title.duplicate() as Label
+	l.text = text
+	l.add_theme_font_size_override("font_size", size)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD
+	l.custom_minimum_size = Vector2(380, 0)
+	_mode_panel.add_child(l)
+
+
+func _m_label(text: String, size: int = 16) -> void:
+	var l := Label.new()
+	l.text = text
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD
+	l.custom_minimum_size = Vector2(380, 0)
+	l.add_theme_font_size_override("font_size", size)
+	l.add_theme_color_override("font_color", Color(0.78, 0.82, 0.92))
+	_mode_panel.add_child(l)
+
+
+func _m_button(text: String, cb: Callable, selected := false) -> Button:
+	var b := _help_btn.duplicate() as Button
+	b.text = ("> " + text) if selected else text
+	b.custom_minimum_size = Vector2(380, 50)
+	b.pressed.connect(cb)
+	_mode_panel.add_child(b)
+	return b
+
+
+func _mode_screen(screen: String, ctx: Dictionary = {}) -> void:
+	_mode_screen_name = screen
+	_m_clear()
+	var first: Control = null
+	match screen:
+		"menu":
+			_m_title("GAME MODE")
+			_m_label("How many players? With two you take turns: when Pac-Man loses a life, " +
+				"the other player is up (like the arcade).", 15)
+			first = _m_button("1 Player", func() -> void: _pick_local(1), _players == 1)
+			_m_button("2 Players - this device", func() -> void: _pick_local(2), _players == 2)
+			if NetLink.relay_url() != "":
+				_m_button("2 Players - Online (own devices)", func() -> void: _mode_screen("online"))
+			if NetLink.lan_possible():
+				_m_button("2 Players - Wi-Fi / LAN (own devices)", func() -> void: _mode_screen("lan"))
+			_m_button("Back", _mode_back)
+		"online":
+			_m_title("PLAY ONLINE", 28)
+			_m_label("Two players, each on their own device, anywhere (also in the browser). " +
+				"You take turns; a 4-letter code connects you.", 15)
+			first = _m_button("Host a game (get a code)", func() -> void:
+				_mode_screen("wait", {"code": ""})
+				if not _net.host_online():
+					_mode_screen("info", {"text": "No online server is set up."}))
+			_m_button("Join with a code", func() -> void: _mode_screen("join_code"))
+			_m_button("Back", _mode_back)
+		"join_code":
+			_m_title("JOIN A GAME", 28)
+			_m_label("Enter the code shown on the host's screen.", 15)
+			var edit := LineEdit.new()
+			edit.max_length = 4
+			edit.placeholder_text = "CODE"
+			edit.alignment = HORIZONTAL_ALIGNMENT_CENTER
+			edit.custom_minimum_size = Vector2(0, 52)
+			edit.add_theme_font_size_override("font_size", 30)
+			_mode_panel.add_child(edit)
+			edit.text_changed.connect(func(t: String) -> void:
+				var c := NetLink.clean_code(t)
+				if c != t:
+					edit.text = c
+					edit.caret_column = c.length())
+			var go := func() -> void:
+				var c := NetLink.clean_code(edit.text)
+				if c.length() == 4:
+					_mode_screen("wait", {"text": "Joining the game..."})
+					if not _net.join_online(c):
+						_mode_screen("info", {"text": "No online server is set up."})
+			edit.text_submitted.connect(func(_t: String) -> void: go.call())
+			_m_button("Join", go)
+			_m_button("Back", _mode_back)
+			first = edit
+		"lan":
+			_m_title("WI-FI / LAN", 28)
+			_m_label("Two players on the same network, no server needed. You take turns.", 15)
+			first = _m_button("Host a game", func() -> void:
+				if _net.host_lan(NetLink.device_name()):
+					_mode_screen("wait", {"ips": NetLink.local_ips()})
+				else:
+					_mode_screen("info", {"text": "Can't open a LAN game here (port 47111 busy?)."}))
+			_m_button("Join a game", func() -> void:
+				_lan_hosts = {}
+				_net.search_lan()
+				_mode_screen("lan_join"))
+			_m_button("Back", _mode_back)
+		"lan_join":
+			_m_title("JOIN IN LAN / WI-FI", 26)
+			if _lan_hosts.is_empty():
+				_m_label("Looking for games in your network...", 15)
+			else:
+				_m_label("Found - pick one:", 15)
+				for ip in _lan_hosts:
+					if ip == "127.0.0.1" and _lan_hosts.keys().any(func(o): return o != ip and _lan_hosts[o] == _lan_hosts[ip]):
+						continue
+					var addr: String = ip
+					var hb := _m_button("%s  (%s)" % [_lan_hosts[ip], addr], func() -> void: _lan_connect(addr))
+					if first == null:
+						first = hb
+			_m_label("Or type the address shown on the host:", 14)
+			var row := HBoxContainer.new()
+			row.add_theme_constant_override("separation", 8)
+			_mode_panel.add_child(row)
+			var ed := LineEdit.new()
+			ed.max_length = 15
+			ed.placeholder_text = "192.168...."
+			ed.text = _ip_text
+			ed.custom_minimum_size = Vector2(0, 46)
+			ed.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			ed.add_theme_font_size_override("font_size", 20)
+			row.add_child(ed)
+			ed.text_changed.connect(func(t: String) -> void: _ip_text = t)
+			ed.text_submitted.connect(func(t: String) -> void: _lan_connect(t))
+			var cb := Button.new()
+			cb.text = "Connect"
+			cb.custom_minimum_size = Vector2(110, 46)
+			row.add_child(cb)
+			cb.pressed.connect(func() -> void: _lan_connect(ed.text))
+			_m_button("Back", _mode_back)
+			if bool(ctx.get("keep_focus", false)):
+				first = ed
+		"wait":
+			var code := str(ctx.get("code", ""))
+			if ctx.has("ips"):
+				_m_title("WAITING FOR THE OTHER PLAYER", 22)
+				_m_label("On their device: Mode > 2 Players - Wi-Fi / LAN > Join a game.", 15)
+				_m_label("This game shows up there by itself, or type its address:", 14)
+				var ips: Array = ctx.get("ips", [])
+				_m_title("  ".join(ips) if not ips.is_empty() else "(no network)", 26)
+				_m_label("Host is a PC with a firewall? Allow UDP 47110-47111 - or play Online.", 13)
+			elif code != "":
+				_m_title("WAITING FOR THE OTHER PLAYER", 22)
+				_m_label("Tell them this code:", 16)
+				_m_title(code, 56)
+				_m_label("On their device: Mode > 2 Players - Online > Join with a code.", 14)
+			else:
+				_m_title("CONNECTING", 28)
+				_m_label(str(ctx.get("text", "Opening a game on the online server...")), 16)
+			first = _m_button("Cancel", _mode_back)
+		"info":
+			_m_title("TWO PLAYERS", 28)
+			_m_label(str(ctx.get("text", "")), 16)
+			first = _m_button("Back", func() -> void: _mode_screen("menu"))
+	_show(_mode_panel)
+	if first:
+		first.call_deferred("grab_focus")
+
+
+func _pick_local(n: int) -> void:
+	_players = n
+	_refresh_mode_btn()
+	_save(_read())
+	_show(_root)
+
+
+func _mode_back() -> void:
+	match _mode_screen_name:
+		"menu":
+			_show(_root)
+		"online", "lan":
+			_mode_screen("menu")
+		"join_code":
+			_mode_screen("online")
+		"lan_join":
+			_net.cancel()
+			_mode_screen("lan")
+		"wait":
+			var lan := _net.discovery != null or (_net.link != null and _net.link.enet != null)
+			_net.cancel()
+			_mode_screen("lan" if lan else "online")
+		_:
+			_mode_screen("menu")
+
+
+func _lan_connect(ip: String) -> void:
+	ip = ip.strip_edges()
+	if ip == "":
+		return
+	_mode_screen("wait", {"text": "Connecting to %s..." % ip})
+	if not _net.join_lan(ip):
+		_mode_screen("info", {"text": "Can't connect to %s." % ip})
+
+
+## Host side: the other player is connected - send the game settings and go.
+func _on_net_connected() -> void:
+	if not _net.is_host:
+		return   # the guest waits for the host's "cfg" message
+	var cfg := _read()
+	cfg.erase("volumes")
+	_net.send_cfg(cfg)
+	_start_net_game(_read(), "host")
+
+
+## Guest side: the host's game settings arrived - adopt them and go.
+func _on_net_cfg(host_cfg: Dictionary) -> void:
+	var cfg := _read()
+	for k in ["lives", "dot_points", "first_extra_life", "extra_life_gap", "extra_life_gap_mult", "pacman_speed", "ghost_speed"]:
+		if host_cfg.has(k):
+			cfg[k] = host_cfg[k]
+	_start_net_game(cfg, "guest")
+
+
+func _start_net_game(cfg: Dictionary, role: String) -> void:
+	_net.in_game = true
+	visible = false
+	get_tree().paused = false
+	cfg["players"] = 2
+	cfg["net"] = _net
+	cfg["net_role"] = role
+	started.emit(cfg)
 
 
 func _show_params() -> void:
@@ -443,7 +695,7 @@ func _load() -> void:
 	if c.load(_PATH) != OK:
 		return
 	_players = clampi(int(c.get_value("s", "players", _players)), 1, 2)
-	_refresh_players_btn()
+	_refresh_mode_btn()
 	_lives.set_value_no_signal(c.get_value("s", "lives", _lives.value))
 	_dot_points.set_value_no_signal(c.get_value("s", "dot_points", _dot_points.value))
 	_first_extra.set_value_no_signal(c.get_value("s", "first_extra_life", _first_extra.value))
@@ -457,7 +709,7 @@ func _save(cfg: Dictionary) -> void:
 	var c := ConfigFile.new()
 	c.load(_PATH)
 	for k in cfg:
-		if k == "volumes" or k == "start_level":
+		if k == "volumes" or k == "start_level" or k == "net" or k == "net_role":
 			continue   # SoundManager owns section "sound"
 		c.set_value("s", k, cfg[k])
 	c.save(_PATH)
