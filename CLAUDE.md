@@ -211,3 +211,7 @@ währenddessen. Offene Punkte sammelt ab jetzt `TODO.md`.
   ging das letzte `turn_end` verloren. Zwei-Geräte-Test per adb:
   `input keyevent` (ENTER/DPAD_DOWN) navigiert die Menüs, `logcat | grep` zum
   Debuggen (Tag `godot`), Handy entsperrt lassen.
+- **Zwischenspiele (v1.9)**: `intermission.gd` (`Intermission`, CanvasLayer 80),
+  gestartet aus `Game._level_clear_sequence()` nach dem Maze-Flash
+  (`_intermission_act(level)`: 2→1, 5→2, 9→3, danach alle 4 Level). Nutzt die
+  Sprites der echten Nodes (`Ghost._BLUE_FRAMES/_EYES_FRAMES`, `_normal_frames`).

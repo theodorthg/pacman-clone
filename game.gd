@@ -1076,6 +1076,11 @@ func _level_clear_sequence() -> void:
 	await _flash_maze(5)
 	await get_tree().create_timer(0.5).timeout
 
+	# 2b. intermission cartoon after levels 2, 5, 9 and every 4th level after
+	var act := _intermission_act(current_level)
+	if act > 0:
+		await _play_intermission(act)
+
 	# 3. level up + full reset
 	current_level += 1
 	_apply_maze_for_level()
@@ -1107,6 +1112,24 @@ func _level_clear_sequence() -> void:
 	await get_tree().create_timer(level_clear_ready).timeout
 	_level_clearing = false
 	_begin_run()
+
+
+## Which cartoon (1-3) plays after clearing `level`; 0 = none.
+func _intermission_act(level: int) -> int:
+	match level:
+		2: return 1
+		5: return 2
+		9: return 3
+	if level > 9 and (level - 9) % 4 == 0:
+		return ((level - 13) / 4) % 3 + 1
+	return 0
+
+
+func _play_intermission(act: int) -> void:
+	var im := Intermission.new()
+	im.setup(act, _player, _ghosts, _hud.offset.y if _hud else 0.0)
+	add_child(im)
+	await im.finished
 
 
 func _flash_maze(times: int) -> void:

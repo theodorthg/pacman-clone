@@ -13,8 +13,7 @@ globale CLAUDE.md „TODO.md pro Projekt“). Neueste Einträge oben.
       wieder drin.)
 
 Ideen für später (Einschätzung 2026-10-03, noch nicht beauftragt):
-- [ ] Zwischenspiele (Cutscenes) nach Level 2/5/9, Geisterverhalten je
-      Labyrinth leicht anders.
+- [ ] Geisterverhalten je Labyrinth leicht anders.
 - Gleichzeitig zu zweit (beide im selben Labyrinth, sich nach einer
   Kraftpille gegenseitig fressen — „Battle Royale“-Art) wäre möglich,
   ist aber mit Swipe-Steuerung nur per Netz sinnvoll.
@@ -38,6 +37,7 @@ Gemeinsam für die Serie (Vorlage: mario-clone v1.6–v1.9):
 
 ## Erledigt
 
+- [x] 2026-10-05 v1.9 Zwischenspiele (`intermission.gd`): nach Level 2, 5, 9 und danach jedem 4. Level ein kurzer Cartoon aus den Spiel-Sprites (Akt 1 Blinky jagt Pac-Man und wird dann vom Riesen-Pac-Man gejagt, Akt 2 Pinky+Inky, Akt 3 alle vier, am Ende rasen die Augen heim); ~8 s, mit beliebiger Taste/Tipp überspringbar.
 - [x] 2026-10-05 v1.8 Wie bei Mario: Play (und Continue) öffnen direkt „How do you want to play?“ (1 Player / 2 Players this device / Online / Wi-Fi-LAN) — der Extra-Button im Startmenü entfällt; Continue-Level wird auch in Netz-Spiele übernommen (Host gibt vor). Netz auf zwei echten Geräten getestet (RG552 = Host, OnePlus = Gast, LAN-Auto-Suche, 3 Züge je Spieler, beide zeigen am Ende 70:70 „DRAW“). Gefunden per logcat: das WLAN des RG552 stockt gelegentlich mehrere Sekunden, ENet-Timeout von 8 s kappte die Verbindung kurz vor dem letzten `turn_end` → Timeout jetzt 10–30 s.
 - [x] 2026-10-05 v1.7.2 Startmenü-Button heißt jetzt fest „Multiplayer Settings“ (statt wechselndem „Game mode: …“); das Untermenü zeigt oben „Current: …“ und die Wahl (1 Spieler / 2 Spieler hier / Online / WLAN-LAN) mit Untermenüs; Hilfe und Wartetexte angepasst.
 - [x] 2026-10-05 v1.7.1 Netz-Züge auf echten Geräten getestet (PC als LAN-Host per `tools/nettest.gd`, RG552 als Gast per Menü: Host wurde automatisch gefunden, Verbinden, Zugwechsel mit Live-Stand „P1 160 x2 L1“, Spielende mit gleichen Ständen auf beiden Seiten). Fix: Fokus sprang bei jeder Host-Listenaktualisierung ins IP-Feld und öffnete die Bildschirmtastatur. Das Handy (OnePlus) war gesperrt und blieb außen vor.
