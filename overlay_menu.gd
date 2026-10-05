@@ -56,6 +56,10 @@ var _hof_entry_row: Control
 ## auto-commit safety net) - stops a "restart_cancel" rebuild from offering
 ## the entry field a second time for the same run (see show_game_over()).
 var _hof_committed_this_run: bool = false
+## Two-player games: one Hall of Fame entry per player. Queue of
+## {p: player index, score, level}, `_hof_done` = how many are already saved.
+var _hof_queue: Array = []
+var _hof_done: int = 0
 
 
 func _ready() -> void:
@@ -153,6 +157,7 @@ func show_game_over(stats: Dictionary, _keep_hof_state: bool = false) -> void:
 	_last_stats = stats
 	if not _keep_hof_state:
 		_hof_committed_this_run = false
+		_hof_done = 0
 	_open(Kind.GAME_OVER, "GAME OVER", [["Restart", "restart"], ["Exit", "exit"]])
 	_fill_stats(stats, true)
 
@@ -162,6 +167,7 @@ func show_win(stats: Dictionary, _keep_hof_state: bool = false) -> void:
 	_last_stats = stats
 	if not _keep_hof_state:
 		_hof_committed_this_run = false
+		_hof_done = 0
 	_open(Kind.WIN, "YOU WIN!", [["Restart", "restart"], ["Exit", "exit"]])
 	_fill_stats(stats, true)
 
@@ -285,9 +291,22 @@ func _fill_stats(d: Dictionary, show_hof: bool = false) -> void:
 	grid.add_theme_constant_override("h_separation", 24)
 	grid.add_theme_constant_override("v_separation", 5)
 	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_stat_row(grid, "SCORE", str(int(d.get("score", 0))))
-	_stat_row(grid, "HIGH SCORE", str(int(d.get("highscore", 0))))
-	_stat_row(grid, "LEVEL REACHED", str(int(d.get("level", 1))))
+	var scores: Array = d.get("scores", [])
+	if scores.size() > 1:
+		var levels: Array = d.get("levels", [])
+		for i in scores.size():
+			_stat_row(grid, "PLAYER %d SCORE" % (i + 1), str(int(scores[i])))
+		_stat_row(grid, "HIGH SCORE", str(int(d.get("highscore", 0))))
+		for i in levels.size():
+			_stat_row(grid, "PLAYER %d LEVEL" % (i + 1), str(int(levels[i])))
+		if int(scores[0]) != int(scores[1]):
+			_stat_row(grid, "WINNER", "PLAYER %d" % (1 if int(scores[0]) > int(scores[1]) else 2))
+		else:
+			_stat_row(grid, "RESULT", "DRAW")
+	else:
+		_stat_row(grid, "SCORE", str(int(d.get("score", 0))))
+		_stat_row(grid, "HIGH SCORE", str(int(d.get("highscore", 0))))
+		_stat_row(grid, "LEVEL REACHED", str(int(d.get("level", 1))))
 	_stat_row(grid, "GHOSTS EATEN", str(int(d.get("ghosts", 0))))
 	var fruits: Array = d.get("fruits", [])
 	var total_fruit := 0
@@ -317,9 +336,19 @@ func _fill_stats(d: Dictionary, show_hof: bool = false) -> void:
 		_stats.add_child(row)
 
 	if show_hof:
+		_hof_queue.clear()
+		if scores.size() > 1:
+			for i in scores.size():
+				_hof_queue.append({"p": i, "score": int(scores[i]), "level": int(d.get("levels", [1, 1])[i])})
+		else:
+			_hof_queue.append({"p": 0, "score": int(d.get("score", 0)), "level": int(d.get("level", 1))})
+		# skip entries that don't qualify (re-checked live: P1's entry may push P2's out)
+		while _hof_done < _hof_queue.size() and not HallOfFame.qualifies(int(_hof_queue[_hof_done]["score"])):
+			_hof_done += 1
 		_pending_score = int(d.get("score", 0))
 		_stats.add_child(_hof_title_label("— HALL OF FAME —"))
-		if not _hof_committed_this_run and HallOfFame.qualifies(_pending_score):
+		if _hof_done < _hof_queue.size() and not _hof_committed_this_run:
+			_pending_score = int(_hof_queue[_hof_done]["score"])
 			_hof_entry_row = _build_hof_entry_row()
 			_stats.add_child(_hof_entry_row)
 		_hof_grid = GridContainer.new()
@@ -353,7 +382,7 @@ func _build_hof_entry_row() -> HBoxContainer:
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 
 	_name_edit = LineEdit.new()
-	_name_edit.placeholder_text = "NAME"
+	_name_edit.placeholder_text = "NAME" if _hof_queue.size() < 2 else "P%d NAME" % (int(_hof_queue[_hof_done]["p"]) + 1)
 	_name_edit.max_length = HallOfFame.NAME_MAX_LEN
 	_name_edit.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_name_edit.custom_minimum_size = Vector2(120, 40)
@@ -389,9 +418,17 @@ func _build_hof_entry_row() -> HBoxContainer:
 func _commit_score() -> void:
 	var who := _name_edit.text.strip_edges()
 	if who == "":
-		who = "YOU"
+		who = "YOU" if _hof_queue.size() < 2 else "P%d" % (int(_hof_queue[_hof_done]["p"]) + 1)
 	who = who.to_upper()
-	var list := HallOfFame.insert(who, _pending_score, _last_stats.get("level", 1))
+	var level := int(_hof_queue[_hof_done]["level"]) if _hof_done < _hof_queue.size() else int(_last_stats.get("level", 1))
+	var list := HallOfFame.insert(who, _pending_score, level)
+	_hof_done += 1
+	while _hof_done < _hof_queue.size() and not HallOfFame.qualifies(int(_hof_queue[_hof_done]["score"])):
+		_hof_done += 1
+	if _hof_done < _hof_queue.size():
+		# another player still has a score to enter: rebuild with a fresh field
+		_fill_stats(_last_stats, true)
+		return
 	_hof_committed_this_run = true
 	_hof_entry_row.hide()
 	# The name field just disappeared out from under whatever had focus (often
@@ -414,7 +451,9 @@ func _commit_score() -> void:
 ## it doubles as the "did they forget" check. Safe to call when there's no
 ## entry row at all (e.g. from the pause menu) - null-guarded.
 func _maybe_auto_commit_hof() -> void:
-	if _hof_entry_row and is_instance_valid(_hof_entry_row) and _hof_entry_row.visible:
+	var guard := 0
+	while _hof_entry_row and is_instance_valid(_hof_entry_row) and _hof_entry_row.visible and guard < 4:
+		guard += 1
 		_commit_score()
 
 

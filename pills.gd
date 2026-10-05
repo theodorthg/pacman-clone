@@ -31,8 +31,9 @@ func _ready() -> void:
 		push_warning("Pills: no player with a 'reached_cell' signal at %s" % player_path)
 
 
-func _build() -> void:
-	var layout := MazeGrid.build_pills()
+func _build(layout: Dictionary = {}) -> void:
+	if layout.is_empty():
+		layout = MazeGrid.build_pills()
 	_total = layout.size()
 	for cell in layout.keys():
 		var kind: int = layout[cell]
@@ -57,6 +58,23 @@ func reset_all() -> void:
 	_kind.clear()
 	_node.clear()
 	_build()
+
+
+## Copy of the pills still on the board (cell -> kind), for the two-player
+## alternating mode: each player keeps his own board while the other one plays.
+func snapshot() -> Dictionary:
+	return _kind.duplicate()
+
+
+## Lay out exactly the pills in `layout` (a snapshot()), replacing the board.
+func restore(layout: Dictionary) -> void:
+	for s in _node.values():
+		s.free()
+	_kind.clear()
+	_node.clear()
+	var total := _total
+	_build(layout)
+	_total = total
 
 
 ## Pill count of a full, fresh board.

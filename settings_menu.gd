@@ -83,6 +83,10 @@ var _help_page: int = 0
 var _help_touch_id: int = -1
 var _help_touch_x: float = 0.0
 const _HELP_SWIPE_MIN := 40.0
+## Start-screen toggle "1 Player" / "2 Players" (alternating turns), built in
+## code right below Play; persisted as "players" in section "s".
+var _players: int = 1
+var _players_btn: Button
 var _vol_slider: Dictionary = {}   ## sound key -> HSlider
 var _vol_label: Dictionary = {}    ## sound key -> Label ("NN%")
 var _audio: Node
@@ -97,6 +101,15 @@ func _ready() -> void:
 	_audio = get_node_or_null(^"../audio")
 
 	_play_btn.pressed.connect(_on_play)
+	_players_btn = _help_btn.duplicate() as Button
+	_players_btn.name = "players_btn"
+	_root.add_child(_players_btn)
+	_root.move_child(_players_btn, _play_btn.get_index() + 1)
+	_players_btn.pressed.connect(func() -> void:
+		_players = 3 - _players
+		_refresh_players_btn()
+		_save(_read()))
+	_refresh_players_btn()
 	_open_settings_btn.pressed.connect(_show_params)
 	# A browser tab can't close itself - get_tree().quit() just freezes the
 	# canvas - so the start screen drops Exit on the Web build, same as the
@@ -268,6 +281,10 @@ func _help_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 
 
+func _refresh_players_btn() -> void:
+	_players_btn.text = "2 Players (turns)" if _players == 2 else "1 Player"
+
+
 func _show_params() -> void:
 	_show(_panel)
 
@@ -372,6 +389,7 @@ func _read() -> Dictionary:
 	for key in _vol_slider:
 		volumes[key] = int((_vol_slider[key] as HSlider).value)
 	return {
+		"players": _players,
 		"lives": int(_lives.value),
 		"dot_points": int(_dot_points.value),
 		"first_extra_life": int(_first_extra.value),
@@ -396,6 +414,8 @@ func _load() -> void:
 	var c := ConfigFile.new()
 	if c.load(_PATH) != OK:
 		return
+	_players = clampi(int(c.get_value("s", "players", _players)), 1, 2)
+	_refresh_players_btn()
 	_lives.set_value_no_signal(c.get_value("s", "lives", _lives.value))
 	_dot_points.set_value_no_signal(c.get_value("s", "dot_points", _dot_points.value))
 	_first_extra.set_value_no_signal(c.get_value("s", "first_extra_life", _first_extra.value))

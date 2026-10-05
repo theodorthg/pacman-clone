@@ -20,7 +20,6 @@ Ideen für später (Einschätzung 2026-10-03, noch nicht beauftragt):
 - [ ] Zwischenspiele (Cutscenes) nach Level 2/5/9, wechselnde Früchte
       als Bonus, Geisterverhalten je Labyrinth leicht anders.
 - [ ] Spielstand/Continue ab dem erreichten Labyrinth.
-- [ ] 2 Spieler abwechselnd (wie der Automat) — billig, falls gewünscht.
 - Gleichzeitig zu zweit (beide im selben Labyrinth, sich nach einer
   Kraftpille gegenseitig fressen — „Battle Royale“-Art) wäre möglich,
   ist aber mit Swipe-Steuerung nur per Netz sinnvoll.
@@ -44,6 +43,7 @@ Gemeinsam für die Serie (Vorlage: mario-clone v1.6–v1.9):
 
 ## Erledigt
 
+- [x] 2026-10-05 2 Spieler abwechselnd: Startmenü-Schalter „1 Player / 2 Players (turns)“ (`players` in settings.cfg); pro Spieler eigener Punktestand, Leben, Level, Brett (`Pills.snapshot()/restore()`) und Extraleben-Schwellen; nach einem Tod wechselt der Zug („P2 READY!“, „P1 GAME OVER“ bei letztem Leben); Endbildschirm mit beiden Punkteständen/Gewinner und je ein Hall-of-Fame-Eintrag pro Spieler (Namensfeld nacheinander). Logik per Wegwerf-Headless-Test geprüft; noch nicht auf dem RG552 live gespielt.
 - [x] 2026-09-29 itch.io jetzt per `butler` in die Channels linux / android / windows / web (`theodorthg/pac-clone`, wie bei mario-clone); Patch-Release v1.2.1: Stand seit v1.2 (Splash mit Ladebalken, weißer Android-Startbildschirm) — damit Windows-Release und itch.io aktuell sind.
 - [x] 2026-09-27 Android-System-Startbildschirm (vor dem Splash) einheitlich
       reines Weiß: `splash_screen/icon` = transparentes

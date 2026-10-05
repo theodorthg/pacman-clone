@@ -187,6 +187,15 @@ var _fruit_points: int = 0
 var _ghosts_eaten: int = 0
 var _fruit_tally: Dictionary = {}   ## tier points -> [Texture2D, count]
 
+## --- two players, alternating (arcade style) ---------------------------
+## Each player has his own score, lives, level, board (pills still left) and
+## extra-life thresholds; after a death the turn passes to the other player
+## while he still has lives. `_ps` holds the SAVED state of both - the live
+## values (score, lives, current_level, ...) belong to `_cur`.
+var _players: int = 1
+var _cur: int = 0
+var _ps: Array = []   ## [{score, lives, level, dots, pills, next_extra, extra_gap, global_on, global_n, alive}]
+
 var _pac_prev_pos: Vector2
 var _ghost_prev_pos: Dictionary = {}
 
@@ -511,6 +520,12 @@ func _on_settings_chosen(cfg: Dictionary) -> void:
 func _apply_config(cfg: Dictionary, set_lives: bool) -> void:
 	if set_lives:
 		lives = int(cfg.get("lives", lives))
+		_players = clampi(int(cfg.get("players", 1)), 1, 2)
+		_cur = 0
+		_ps.clear()
+		for i in _players:
+			_ps.append(_fresh_state(lives))
+		_update_player_labels()
 	points_per_dot = int(cfg.get("dot_points", points_per_dot))
 	first_extra_life = int(cfg.get("first_extra_life", first_extra_life))
 	extra_life_gap = int(cfg.get("extra_life_gap", extra_life_gap))
@@ -874,12 +889,25 @@ func _on_player_died() -> void:
 	lives -= 1
 	_refresh_lives()
 	_remove_fruit()           # a fruit on screen at the moment of death is lost
-	if lives <= 0:
+	var next := _next_player_after_death()
+	if next < 0:
 		_end_game()
 		return
 	reset_after_death()
+	var banner := ""
+	if _players > 1:
+		if lives <= 0:
+			_ps[_cur]["alive"] = false
+			banner = "P%d GAME OVER" % (_cur + 1)
+		if next != _cur:
+			_switch_player(next)
+		if banner == "":
+			banner = "P%d READY!" % (_cur + 1)
 	# everyone stands still on "READY!" for a beat before moving again
-	_show_ready(true)
+	_show_ready(true, banner)
+	if banner.contains("GAME OVER"):
+		await get_tree().create_timer(1.5).timeout
+		_show_ready(true, "P%d READY!" % (_cur + 1))
 	await get_tree().create_timer(respawn_ready).timeout
 	if _game_over or not is_inside_tree():
 		return
@@ -954,13 +982,23 @@ func _game_stats() -> Dictionary:
 	tiers.sort()   # cherry (100) -> key (5000)
 	for t in tiers:
 		fruits.append(_fruit_tally[t])   # [Texture2D, count]
-	return {
+	var d := {
 		"score": score,
 		"highscore": highscore,
 		"level": current_level,
 		"ghosts": _ghosts_eaten,
 		"fruits": fruits,
 	}
+	if _players > 1:
+		var scores: Array = []
+		var levels: Array = []
+		for i in _players:
+			var live := i == _cur
+			scores.append(score if live else int(_ps[i]["score"]))
+			levels.append(current_level if live else int(_ps[i]["level"]))
+		d["scores"] = scores
+		d["levels"] = levels
+	return d
 
 
 func _level_clear_sequence() -> void:
@@ -1052,9 +1090,74 @@ func _update_level_label() -> void:
 		_level_label.text = str(current_level)
 
 
-func _show_ready(on: bool) -> void:
+func _show_ready(on: bool, text: String = "") -> void:
 	if _ready_label:
+		_ready_label.text = text if text != "" else ("P%d READY!" % (_cur + 1) if _players > 1 else "READY!")
 		_ready_label.visible = on
+
+
+# --- two players, alternating ------------------------------------------
+
+func _fresh_state(n_lives: int) -> Dictionary:
+	return {
+		"score": 0, "lives": n_lives, "level": 1, "dots": 0, "pills": {},
+		"next_extra": first_extra_life if first_extra_life > 0 else 0,
+		"extra_gap": float(extra_life_gap), "global_on": false, "global_n": 0,
+		"alive": true,
+	}
+
+
+## Who plays next after the current player lost a life: -1 = nobody (game over).
+func _next_player_after_death() -> int:
+	if _players <= 1:
+		return _cur if lives > 0 else -1
+	var other := 1 - _cur
+	if other_alive_state(other):
+		return other
+	return _cur if lives > 0 else -1
+
+
+func other_alive_state(idx: int) -> bool:
+	return bool(_ps[idx]["alive"]) and int(_ps[idx]["lives"]) > 0
+
+
+func _save_current_state() -> void:
+	_ps[_cur] = {
+		"score": score, "lives": lives, "level": current_level, "dots": _dots_eaten,
+		"pills": _pills.snapshot(), "next_extra": _next_extra_life,
+		"extra_gap": _cur_extra_gap, "global_on": _use_global_dots,
+		"global_n": _global_dots, "alive": _ps[_cur]["alive"],
+	}
+
+
+func _switch_player(idx: int) -> void:
+	_save_current_state()
+	_cur = idx
+	var s: Dictionary = _ps[idx]
+	score = int(s["score"])
+	lives = int(s["lives"])
+	current_level = int(s["level"])
+	_dots_eaten = int(s["dots"])
+	_next_extra_life = int(s["next_extra"])
+	_cur_extra_gap = float(s["extra_gap"])
+	_use_global_dots = bool(s["global_on"])
+	_global_dots = int(s["global_n"])
+	var layout: Dictionary = s["pills"]
+	if layout.is_empty():
+		_pills.reset_all()
+	else:
+		_pills.restore(layout)
+	_update_score_label()
+	_update_level_label()
+	_refresh_lives()
+	_rebuild_level_icons()
+	_update_player_labels()
+
+
+func _update_player_labels() -> void:
+	var cap := get_node_or_null(^"../hud/score_caption") as Label
+	if cap:
+		cap.text = "PLAYER %d" % (_cur + 1) if _players > 1 else "SCORE"
 
 
 func _load_highscore() -> int:
