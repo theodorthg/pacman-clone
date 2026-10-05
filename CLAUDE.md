@@ -204,3 +204,10 @@ währenddessen. Offene Punkte sammelt ab jetzt `TODO.md`.
   `tools/nettest.gd` (host/guest [online]); lokaler Relay: `cd ../mario-clone/
   server && PORT=8765 node relay.js`. **Nicht `pkill -f "node relay.js"`** —
   trifft die eigene Shell.
+- **Menüfluss (ab v1.8)**: wie mario-clone — Play/Continue → `_open_mode_menu()`
+  („How do you want to play?“) → 1/2 Spieler startet sofort, Online/LAN führen
+  in die Host/Join-Screens. Kein eigener Startmenü-Button. **ENet-Timeout
+  10–30 s** (`net_link.gd`): das RG552-WLAN stockt oft 2–3 s, bei 8 s Timeout
+  ging das letzte `turn_end` verloren. Zwei-Geräte-Test per adb:
+  `input keyevent` (ENTER/DPAD_DOWN) navigiert die Menüs, `logcat | grep` zum
+  Debuggen (Tag `godot`), Handy entsperrt lassen.

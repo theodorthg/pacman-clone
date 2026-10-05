@@ -142,7 +142,7 @@ func join_lan(ip: String) -> int:
 		return err
 	peer = enet.connect_to_host(ip.strip_edges(), PORT, 1)
 	if peer:
-		peer.set_timeout(0, 4000, 8000)    # no answer -> "disconnect" after ~8 s
+		peer.set_timeout(0, 10000, 30000)    # no answer -> "disconnect" after ~30 s (Wi-Fi on handhelds stalls for seconds)
 	return OK if peer else ERR_CANT_CONNECT
 
 func _poll_enet() -> Array:
@@ -159,7 +159,7 @@ func _poll_enet() -> Array:
 					p.peer_disconnect()            # one opponent only
 					continue
 				peer = p
-				peer.set_timeout(0, 4000, 8000)
+				peer.set_timeout(0, 10000, 30000)
 				connected = true
 				ever_connected = true
 				out.append(["connect"])

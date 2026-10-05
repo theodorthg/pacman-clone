@@ -91,7 +91,7 @@ const _HELP_SWIPE_MIN := 40.0
 ## network (online relay or Wi-Fi/LAN, each on their own device).
 ## `_players` (1/2) is the persisted local choice ("players" in section "s").
 var _players: int = 1
-var _mode_btn: Button
+var _pending_level: int = 1   ## 1 = Play, else the Continue checkpoint
 var _mode_panel: VBoxContainer
 var _mode_screen_name: String = ""
 var _net: TurnsNet
@@ -113,12 +113,7 @@ func _ready() -> void:
 	apply_touch_layout()
 	_audio = get_node_or_null(^"../audio")
 
-	_play_btn.pressed.connect(func() -> void: _on_play(1))
-	_mode_btn = _help_btn.duplicate() as Button
-	_mode_btn.name = "mode_btn"
-	_root.add_child(_mode_btn)
-	_root.move_child(_mode_btn, _play_btn.get_index() + 1)
-	_mode_btn.pressed.connect(func() -> void: _mode_screen("menu"))
+	_play_btn.pressed.connect(func() -> void: _open_mode_menu(1))
 	_mode_panel = VBoxContainer.new()
 	_mode_panel.name = "mode_panel"
 	_mode_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -141,12 +136,11 @@ func _ready() -> void:
 			# was there (otherwise the on-screen keyboard pops up by itself)
 			var typing := get_viewport().gui_get_focus_owner() is LineEdit
 			_mode_screen("lan_join", {"keep_focus": typing}))
-	_refresh_mode_btn()
 	_continue_btn = _help_btn.duplicate() as Button
 	_continue_btn.name = "continue_btn"
 	_root.add_child(_continue_btn)
 	_root.move_child(_continue_btn, _play_btn.get_index() + 1)
-	_continue_btn.pressed.connect(func() -> void: _on_play(checkpoint_level()))
+	_continue_btn.pressed.connect(func() -> void: _open_mode_menu(checkpoint_level()))
 	_refresh_continue_btn()
 	_open_settings_btn.pressed.connect(_show_params)
 	# A browser tab can't close itself - get_tree().quit() just freezes the
@@ -336,8 +330,11 @@ func _refresh_continue_btn() -> void:
 	_continue_btn.text = "Continue (Level %d)" % lvl
 
 
-func _refresh_mode_btn() -> void:
-	_mode_btn.text = "Multiplayer Settings"
+## Play / Continue open this "how do you want to play" screen (like mario-clone);
+## picking 1 or 2 players on this device starts the run right away.
+func _open_mode_menu(level: int) -> void:
+	_pending_level = level
+	_mode_screen("menu")
 
 
 # --- mode panel (1 / 2 players, network) -----------------------------------
@@ -383,12 +380,12 @@ func _mode_screen(screen: String, ctx: Dictionary = {}) -> void:
 	var first: Control = null
 	match screen:
 		"menu":
-			_m_title("MULTIPLAYER SETTINGS", 24)
-			_m_label("Current: %s" % ("2 Players - this device (turns)" if _players == 2 else "1 Player"), 17)
+			_m_title("HOW DO YOU WANT TO PLAY?", 22)
 			_m_label("With two players you take turns: when Pac-Man loses a life, " +
-				"the other player is up (like the arcade). Pick below:", 15)
-			first = _m_button("1 Player", func() -> void: _pick_local(1), _players == 1)
-			_m_button("2 Players - this device", func() -> void: _pick_local(2), _players == 2)
+				"the other player is up (like the arcade).", 15)
+			var b1 := _m_button("1 Player", func() -> void: _pick_local(1))
+			var b2 := _m_button("2 Players - this device", func() -> void: _pick_local(2))
+			first = b2 if _players == 2 else b1
 			if NetLink.relay_url() != "":
 				_m_button("2 Players - Online (own devices)", func() -> void: _mode_screen("online"))
 			if NetLink.lan_possible():
@@ -481,7 +478,7 @@ func _mode_screen(screen: String, ctx: Dictionary = {}) -> void:
 			var code := str(ctx.get("code", ""))
 			if ctx.has("ips"):
 				_m_title("WAITING FOR THE OTHER PLAYER", 22)
-				_m_label("On their device: Multiplayer Settings > Wi-Fi / LAN > Join a game.", 15)
+				_m_label("On their device: Play > Wi-Fi / LAN > Join a game.", 15)
 				_m_label("This game shows up there by itself, or type its address:", 14)
 				var ips: Array = ctx.get("ips", [])
 				_m_title("  ".join(ips) if not ips.is_empty() else "(no network)", 26)
@@ -490,7 +487,7 @@ func _mode_screen(screen: String, ctx: Dictionary = {}) -> void:
 				_m_title("WAITING FOR THE OTHER PLAYER", 22)
 				_m_label("Tell them this code:", 16)
 				_m_title(code, 56)
-				_m_label("On their device: Multiplayer Settings > Online > Join with a code.", 14)
+				_m_label("On their device: Play > Online > Join with a code.", 14)
 			else:
 				_m_title("CONNECTING", 28)
 				_m_label(str(ctx.get("text", "Opening a game on the online server...")), 16)
@@ -506,9 +503,7 @@ func _mode_screen(screen: String, ctx: Dictionary = {}) -> void:
 
 func _pick_local(n: int) -> void:
 	_players = n
-	_refresh_mode_btn()
-	_save(_read())
-	_show(_root)
+	_on_play(_pending_level)
 
 
 func _mode_back() -> void:
@@ -545,14 +540,17 @@ func _on_net_connected() -> void:
 		return   # the guest waits for the host's "cfg" message
 	var cfg := _read()
 	cfg.erase("volumes")
+	cfg["start_level"] = _pending_level
 	_net.send_cfg(cfg)
-	_start_net_game(_read(), "host")
+	var mine := _read()
+	mine["start_level"] = _pending_level
+	_start_net_game(mine, "host")
 
 
 ## Guest side: the host's game settings arrived - adopt them and go.
 func _on_net_cfg(host_cfg: Dictionary) -> void:
 	var cfg := _read()
-	for k in ["lives", "dot_points", "first_extra_life", "extra_life_gap", "extra_life_gap_mult", "pacman_speed", "ghost_speed"]:
+	for k in ["lives", "dot_points", "first_extra_life", "extra_life_gap", "extra_life_gap_mult", "pacman_speed", "ghost_speed", "start_level"]:
 		if host_cfg.has(k):
 			cfg[k] = host_cfg[k]
 	_start_net_game(cfg, "guest")
@@ -699,7 +697,6 @@ func _load() -> void:
 	if c.load(_PATH) != OK:
 		return
 	_players = clampi(int(c.get_value("s", "players", _players)), 1, 2)
-	_refresh_mode_btn()
 	_lives.set_value_no_signal(c.get_value("s", "lives", _lives.value))
 	_dot_points.set_value_no_signal(c.get_value("s", "dot_points", _dot_points.value))
 	_first_extra.set_value_no_signal(c.get_value("s", "first_extra_life", _first_extra.value))
