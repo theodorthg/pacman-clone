@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="980" viewBox="0 0 900 980" font-family="DejaVu Sans, 'Liberation Sans', sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#141225"/><stop offset="1" stop-color="#07060c"/>
+    </linearGradient>
+    <marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8cd9ff"/>
+    </marker>
+  </defs>
+  <rect width="900" height="980" fill="url(#bg)"/>
+  <rect x="14" y="14" width="872" height="952" rx="18" fill="none" stroke="#fff24d" stroke-opacity="0.20" stroke-width="2"/>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/cherry.png" x="120" y="90" width="128" height="128" style="image-rendering: pixelated"/>
+  <text x="290" y="140" font-size="32" fill="#eef4ff" font-weight="700" text-anchor="start">Bonus fruit wanders in</text>
+  <text x="290" y="178" font-size="32" fill="#eef4ff" font-weight="700" text-anchor="start">through a side tunnel</text>
+  <text x="290" y="214" font-size="24" fill="#8fa3c8" text-anchor="start">and roams the maze</text>
+  <rect x="40" y="270" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
+  <g stroke="#8cd9ff" stroke-width="5" fill="none" stroke-dasharray="14 10">
+    <path d="M70 380 L250 380 L250 330 L440 330 L440 440 L620 440 L620 360 L780 360" marker-end="url(#ah)"/>
+  </g>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/cherry.png" x="40" y="350" width="56" height="56" style="image-rendering: pixelated"/>
+  <text x="450" y="520" font-size="26" fill="#eef4ff" text-anchor="middle">It turns at random on every junction</text>
+  <text x="450" y="556" font-size="22" fill="#8fa3c8" text-anchor="middle">- but never straight back</text>
+  <rect x="40" y="600" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
+  <text x="450" y="650" font-size="26" fill="#fff24d" font-weight="700" text-anchor="middle">It is slower than Pac-Man - catch it!</text>
+  <text x="450" y="686" font-size="22" fill="#8fa3c8" text-anchor="middle">After about 15 seconds it heads for a</text>
+  <text x="450" y="716" font-size="22" fill="#8fa3c8" text-anchor="middle">tunnel and leaves. It shows up twice per level.</text>
+  <rect x="40" y="760" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/cherry.png" x="72" y="800" width="64" height="64" style="image-rendering: pixelated"/>
+  <text x="104" y="896" font-size="20" fill="#ffe98a" font-weight="700" text-anchor="middle">100</text>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/strawberry.png" x="170" y="800" width="64" height="64" style="image-rendering: pixelated"/>
+  <text x="202" y="896" font-size="20" fill="#ffe98a" font-weight="700" text-anchor="middle">300</text>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/peach.png" x="268" y="800" width="64" height="64" style="image-rendering: pixelated"/>
+  <text x="300" y="896" font-size="20" fill="#ffe98a" font-weight="700" text-anchor="middle">500</text>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/apple.png" x="366" y="800" width="64" height="64" style="image-rendering: pixelated"/>
+  <text x="398" y="896" font-size="20" fill="#ffe98a" font-weight="700" text-anchor="middle">700</text>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/melon.png" x="464" y="800" width="64" height="64" style="image-rendering: pixelated"/>
+  <text x="496" y="896" font-size="20" fill="#ffe98a" font-weight="700" text-anchor="middle">1000</text>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/galaxian.png" x="562" y="800" width="64" height="64" style="image-rendering: pixelated"/>
+  <text x="594" y="896" font-size="20" fill="#ffe98a" font-weight="700" text-anchor="middle">2000</text>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/bell.png" x="660" y="800" width="64" height="64" style="image-rendering: pixelated"/>
+  <text x="692" y="896" font-size="20" fill="#ffe98a" font-weight="700" text-anchor="middle">3000</text>
+  <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/key.png" x="758" y="800" width="64" height="64" style="image-rendering: pixelated"/>
+  <text x="790" y="896" font-size="20" fill="#ffe98a" font-weight="700" text-anchor="middle">5000</text>
+  <text x="450" y="940" font-size="20" fill="#8fa3c8" text-anchor="middle">worth more with every level</text>
+</svg>

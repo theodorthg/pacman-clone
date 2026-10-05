@@ -189,3 +189,9 @@ währenddessen. Offene Punkte sammelt ab jetzt `TODO.md`.
 - **Continue** (v1.5): `Game._save_checkpoint()` schreibt beim Eintritt in einen
   neuen Labyrinth-Block `progress/checkpoint_level`; `SettingsMenu` zeigt
   „Continue (Level N)“ und startet mit `cfg["start_level"]`.
+- **Ab v1.6 zeichnet `maze_art.gd` ALLE Labyrinthe** (auch 0, blau) mit
+  abgerundeten Ecken: Eckpunkte des Gitters klassifizieren (1 Wand = konvex →
+  Ecke mit Hintergrundfarbe wegschneiden, 1 Frei = konkav → Wand-Fillet), Kanten
+  um `R` an gerundeten Enden kürzen. Außerhalb des Gitters zählt als frei
+  (= Clear-Color, die Korridorfarbe). Die `tiles`-TileMapLayer bleibt in der
+  Szene, ist aber unsichtbar.

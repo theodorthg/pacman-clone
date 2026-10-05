@@ -75,6 +75,9 @@ const HELP_PAGES: Array[Dictionary] = [
 	{"title": "MOUSE — CHANGE YOUR MIND", "file": "mouse_change"},
 	{"title": "KEYBOARD / GAMEPAD", "file": "keyboard"},
 	{"title": "TOUCH", "file": "touch"},
+	{"title": "BONUS FRUIT", "file": "fruit"},
+	{"title": "TWO PLAYERS", "file": "players"},
+	{"title": "MAZES & CONTINUE", "file": "continue"},
 	{"title": "SETTINGS", "file": "settings"},
 ]
 

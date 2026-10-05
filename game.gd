@@ -1111,7 +1111,7 @@ func _set_maze_flash(v: float) -> void:
 ## Mazes 1+ are drawn by a MazeArt node next to the original tilemap.
 func _setup_maze_art() -> void:
 	_maze_art = MazeArt.new()
-	_maze_art.visible = false
+	_maze_art.visible = true
 	var parent := get_parent()
 	# the parent is still busy adding its children while our _ready runs
 	parent.add_child.call_deferred(_maze_art)
@@ -1127,9 +1127,9 @@ func _apply_maze_for_level() -> bool:
 	var changed := idx != MazeGrid.maze_index
 	MazeGrid.set_maze(idx)
 	if _maze:
-		_maze.visible = idx == 0
+		_maze.visible = false   # the old hand-made tile art of maze 0 is retired
 	if _maze_art:
-		_maze_art.visible = idx != 0
+		_maze_art.visible = true
 		_maze_art.setup(idx)
 	return changed
 

@@ -43,8 +43,8 @@
   <g transform="translate(120 470) scale(4)">
     <image xlink:href="file:///home/bernd/GodotDev/learn_2d_gamedev_godot_4_0.57.0_linux/projects/pacman/assets/graphics/help_sprites/cherry.png" x="0" y="0" width="16" height="16"/>
   </g>
-  <text x="260" y="500" font-size="28" fill="#eef4ff">Fruit appears</text>
-  <text x="260" y="532" font-size="22" fill="#8fa3c8">twice per level - free bonus points</text>
+  <text x="260" y="500" font-size="28" fill="#eef4ff">Fruit wanders in</text>
+  <text x="260" y="532" font-size="22" fill="#8fa3c8">twice per level - catch it for bonus points</text>
 
   <rect x="40" y="590" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
 
