@@ -337,7 +337,7 @@ func _refresh_continue_btn() -> void:
 
 
 func _refresh_mode_btn() -> void:
-	_mode_btn.text = "Game mode: 2 Players (turns)" if _players == 2 else "Game mode: 1 Player"
+	_mode_btn.text = "Multiplayer Settings"
 
 
 # --- mode panel (1 / 2 players, network) -----------------------------------
@@ -383,9 +383,10 @@ func _mode_screen(screen: String, ctx: Dictionary = {}) -> void:
 	var first: Control = null
 	match screen:
 		"menu":
-			_m_title("GAME MODE")
-			_m_label("How many players? With two you take turns: when Pac-Man loses a life, " +
-				"the other player is up (like the arcade).", 15)
+			_m_title("MULTIPLAYER SETTINGS", 24)
+			_m_label("Current: %s" % ("2 Players - this device (turns)" if _players == 2 else "1 Player"), 17)
+			_m_label("With two players you take turns: when Pac-Man loses a life, " +
+				"the other player is up (like the arcade). Pick below:", 15)
 			first = _m_button("1 Player", func() -> void: _pick_local(1), _players == 1)
 			_m_button("2 Players - this device", func() -> void: _pick_local(2), _players == 2)
 			if NetLink.relay_url() != "":
@@ -480,7 +481,7 @@ func _mode_screen(screen: String, ctx: Dictionary = {}) -> void:
 			var code := str(ctx.get("code", ""))
 			if ctx.has("ips"):
 				_m_title("WAITING FOR THE OTHER PLAYER", 22)
-				_m_label("On their device: Mode > 2 Players - Wi-Fi / LAN > Join a game.", 15)
+				_m_label("On their device: Multiplayer Settings > Wi-Fi / LAN > Join a game.", 15)
 				_m_label("This game shows up there by itself, or type its address:", 14)
 				var ips: Array = ctx.get("ips", [])
 				_m_title("  ".join(ips) if not ips.is_empty() else "(no network)", 26)
@@ -489,7 +490,7 @@ func _mode_screen(screen: String, ctx: Dictionary = {}) -> void:
 				_m_title("WAITING FOR THE OTHER PLAYER", 22)
 				_m_label("Tell them this code:", 16)
 				_m_title(code, 56)
-				_m_label("On their device: Mode > 2 Players - Online > Join with a code.", 14)
+				_m_label("On their device: Multiplayer Settings > Online > Join with a code.", 14)
 			else:
 				_m_title("CONNECTING", 28)
 				_m_label(str(ctx.get("text", "Opening a game on the online server...")), 16)
