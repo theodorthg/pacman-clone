@@ -13,7 +13,6 @@ globale CLAUDE.md „TODO.md pro Projekt“). Neueste Einträge oben.
       wieder drin.)
 
 Ideen für später (Einschätzung 2026-10-03, noch nicht beauftragt):
-- [ ] Geisterverhalten je Labyrinth leicht anders.
 - Gleichzeitig zu zweit (beide im selben Labyrinth, sich nach einer
   Kraftpille gegenseitig fressen — „Battle Royale“-Art) wäre möglich,
   ist aber mit Swipe-Steuerung nur per Netz sinnvoll.
@@ -37,6 +36,7 @@ Gemeinsam für die Serie (Vorlage: mario-clone v1.6–v1.9):
 
 ## Erledigt
 
+- [x] 2026-10-05 v1.10 Jingles für die Zwischenspiele (`tools/make_jingles.py` → `assets/sounds/intermission1-3.wav`, Chiptune, Regler „Intermission jingle“ in den Sound-Einstellungen, Bild bleibt bis zum Ende des Jingles). Geisterverhalten je Labyrinth (`Game._MAZE_RULES`: Tempo, Scatter-/Chase-Dauer, Blauzeit, Geisterhaus-Limits, Pinky-/Inky-/Clyde-Parameter; Classic/Ambush/Cunning/Marathon/Furious).
 - [x] 2026-10-05 v1.9 Zwischenspiele (`intermission.gd`): nach Level 2, 5, 9 und danach jedem 4. Level ein kurzer Cartoon aus den Spiel-Sprites (Akt 1 Blinky jagt Pac-Man und wird dann vom Riesen-Pac-Man gejagt, Akt 2 Pinky+Inky, Akt 3 alle vier, am Ende rasen die Augen heim); ~8 s, mit beliebiger Taste/Tipp überspringbar.
 - [x] 2026-10-05 v1.8 Wie bei Mario: Play (und Continue) öffnen direkt „How do you want to play?“ (1 Player / 2 Players this device / Online / Wi-Fi-LAN) — der Extra-Button im Startmenü entfällt; Continue-Level wird auch in Netz-Spiele übernommen (Host gibt vor). Netz auf zwei echten Geräten getestet (RG552 = Host, OnePlus = Gast, LAN-Auto-Suche, 3 Züge je Spieler, beide zeigen am Ende 70:70 „DRAW“). Gefunden per logcat: das WLAN des RG552 stockt gelegentlich mehrere Sekunden, ENet-Timeout von 8 s kappte die Verbindung kurz vor dem letzten `turn_end` → Timeout jetzt 10–30 s.
 - [x] 2026-10-05 v1.7.2 Startmenü-Button heißt jetzt fest „Multiplayer Settings“ (statt wechselndem „Game mode: …“); das Untermenü zeigt oben „Current: …“ und die Wahl (1 Spieler / 2 Spieler hier / Online / WLAN-LAN) mit Untermenüs; Hilfe und Wartetexte angepasst.

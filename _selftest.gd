@@ -61,6 +61,12 @@ func _init() -> void:
 		var mi := MazeGrid.maze_for_level(lvl)
 		fails += _expect(mi >= 0 and mi < MazeGrid.maze_count(), "maze_for_level(%d) = %d in range" % [lvl, mi])
 
+	var rules: Array = Game._MAZE_RULES
+	fails += _expect(rules.size() == MazeGrid.maze_count(), "one ghost rule set per maze (%d)" % rules.size())
+	for rs: Dictionary in rules:
+		for k in ["speed", "scatter", "chase", "fright", "house", "pinky_ahead", "inky_pivot", "clyde_radius"]:
+			fails += _expect(rs.has(k) and float(rs[k]) > 0.0, "rule %s.%s" % [rs.get("name", "?"), k])
+
 	if fails == 0:
 		print("_selftest: all checks passed")
 	else:

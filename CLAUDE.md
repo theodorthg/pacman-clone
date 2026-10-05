@@ -215,3 +215,9 @@ währenddessen. Offene Punkte sammelt ab jetzt `TODO.md`.
   gestartet aus `Game._level_clear_sequence()` nach dem Maze-Flash
   (`_intermission_act(level)`: 2→1, 5→2, 9→3, danach alle 4 Level). Nutzt die
   Sprites der echten Nodes (`Ghost._BLUE_FRAMES/_EYES_FRAMES`, `_normal_frames`).
+- **Geisterregeln je Labyrinth (v1.10)**: `Game._MAZE_RULES` (Index = Labyrinth),
+  Zugriff `Game.rule_value(key)`; Ghost nutzt `speed_mult`, `pinky_ahead`,
+  `inky_pivot`, `clyde_radius`. **Jingles**: `tools/make_jingles.py` erzeugt
+  deterministisch `assets/sounds/intermission1-3.wav` (Ton prüfen ohne Zuhören:
+  `ffmpeg -af volumedetect`); `SoundManager.play_intermission(act)` liefert die
+  Länge, `Intermission.min_duration` hält das Bild so lange.

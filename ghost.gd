@@ -19,6 +19,8 @@ enum State { HOUSE, LEAVING, SCATTER, CHASE, FRIGHTENED, EYES }
 
 @export var personality: Personality = Personality.BLINKY
 @export var speed: float = 100.0
+## Per-maze multiplier on `speed` (set by game.gd from its _MAZE_RULES).
+var speed_mult: float = 1.0
 @export var frightened_speed_mult: float = 0.5
 @export var eyes_speed: float = 220.0
 @export var anim_speed_scale: float = 2.0
@@ -293,7 +295,7 @@ func _revive_and_leave() -> void:
 ## reaching it, take the turn that was decided one tile ago, then immediately
 ## look ahead and decide the turn for the tile we are now heading into.
 func _navigate(delta: float) -> void:
-	var eff_speed := speed * (frightened_speed_mult if _state == State.FRIGHTENED else 1.0)
+	var eff_speed := speed * speed_mult * (frightened_speed_mult if _state == State.FRIGHTENED else 1.0)
 	var to := _target_pos - global_position
 	var step := eff_speed * delta
 	if step < to.length():
@@ -424,17 +426,18 @@ func _chase_target() -> Vector2i:
 			return pac
 		Personality.PINKY:
 			# Ambusher: 4 tiles in front of Pac-Man.
-			return _tiles_ahead(pac, head, 4)
+			return _tiles_ahead(pac, head, int(_game.rule_value("pinky_ahead")))
 		Personality.INKY:
 			# Bashful: take the tile 2 in front of Pac-Man, draw the vector from
 			# Blinky to it, then double that vector - the far end is Inky's target.
-			var pivot := _tiles_ahead(pac, head, 2)
+			var pivot := _tiles_ahead(pac, head, int(_game.rule_value("inky_pivot")))
 			return pivot * 2 - _game.blinky_cell()
 		Personality.CLYDE:
 			# Pokey: chases like Blinky while > 8 tiles from Pac-Man, but bolts for
 			# his own corner once he is 8 tiles or closer.
 			var me := MazeGrid.world_to_cell(global_position)
-			if (pac - me).length_squared() > 64:
+			var r: float = _game.rule_value("clyde_radius")
+			if (pac - me).length_squared() > r * r:
 				return pac
 			return _scatter_target()
 	return pac

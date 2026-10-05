@@ -35,4 +35,7 @@
   <rect x="40" y="740" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
   <text x="450" y="795" font-size="26" fill="#fff24d" font-weight="700" text-anchor="middle">Score and lives start fresh</text>
   <text x="450" y="830" font-size="22" fill="#8fa3c8" text-anchor="middle">(with 2 players, both start at that level)</text>
+  <rect x="40" y="880" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
+  <text x="450" y="930" text-anchor="middle" font-size="24" font-weight="700" fill="#eef4ff">Every maze has its own ghosts</text>
+  <text x="450" y="960" text-anchor="middle" font-size="19" fill="#8fa3c8">faster, pushier, shorter blue time...</text>
 </svg>

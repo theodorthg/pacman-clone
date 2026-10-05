@@ -22,6 +22,9 @@ var _act: int = 1
 var _tween: Tween
 var _runners: Array[Node] = []
 var _done := false
+var _started_ms := 0
+## Keep the last frame up at least this long (the jingle's length, set by the game).
+var min_duration: float = 0.0
 
 
 ## `shift_y`: the design-space shift of the HUD layer (centred layout on tall phones).
@@ -58,6 +61,7 @@ func _ready() -> void:
 	hint.add_theme_font_size_override("font_size", 12)
 	hint.add_theme_color_override("font_color", Color(0.55, 0.6, 0.75))
 	add_child(hint)
+	_started_ms = Time.get_ticks_msec()
 	_play()
 
 
@@ -158,5 +162,6 @@ func _play() -> void:
 			await _run([[_ghost(B, "eyes", true), 0.0], [_ghost(P, "eyes", true), -50.0],
 				[_ghost(I, "eyes", true), -100.0], [_ghost(C, "eyes", true), -150.0]], 320.0, true, 1.8)
 	if not _done:
-		await get_tree().create_timer(0.3).timeout
+		var left := min_duration - float(Time.get_ticks_msec() - _started_ms) / 1000.0
+		await get_tree().create_timer(maxf(0.3, left)).timeout
 	_finish()

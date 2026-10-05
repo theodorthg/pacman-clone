@@ -41,6 +41,7 @@ const SOUNDS := {
 	"eat_ghost": ["Eat ghost", 100],
 	"death":     ["Pac-Man death", 100],
 	"levelup":   ["Level clear", 100],
+	"intermission": ["Intermission jingle", 100],
 	"normal":    ["Ghost siren", 100],
 	"fright":    ["Ghosts frightened", 100],
 	"power":     ["Power-pellet loop", 100],
@@ -56,6 +57,7 @@ const _BASE_DB := {
 	"eat_ghost": -16.0,
 	"death":     -20.0,
 	"levelup":   -14.0,
+	"intermission": -17.0,
 	"normal":    -25.2,
 	"fright":    -23.1,
 	"power":     -22.0,
@@ -70,6 +72,7 @@ const _ONESHOT_FILES := {
 	"eat_ghost": ["pacman-eating-ghost.wav", 2],
 	"death":     ["pacman-death.wav", 1],
 	"levelup":   ["win-sound.wav", 1],
+	"intermission": ["intermission1.wav", 1],   # stream swapped per act in play_intermission()
 }
 
 ## key -> file
@@ -141,6 +144,23 @@ func play_pill() -> void:       _play("pill")
 func play_eat_item() -> void:   _play("eat_item")
 func play_eat_ghost() -> void:  _play("eat_ghost")
 func play_levelup() -> void:    _play("levelup")
+
+
+## Intermission jingle of act 1-3 (assets/sounds/intermission<N>.wav, made by
+## tools/make_jingles.py). Returns its length in seconds (0 if unavailable).
+func play_intermission(act: int) -> float:
+	var p: AudioStreamPlayer = _oneshot.get("intermission")
+	if p == null:
+		return 0.0
+	p.stream = load(_DIR + "intermission%d.wav" % clampi(act, 1, 3))
+	p.play()
+	return p.stream.get_length()
+
+
+func stop_intermission() -> void:
+	var p: AudioStreamPlayer = _oneshot.get("intermission")
+	if p:
+		p.stop()
 
 
 ## Pac-Man's death: kill every other sound, then the death jingle alone.

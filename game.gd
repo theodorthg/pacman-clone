@@ -116,6 +116,28 @@ const _WAVES: Array = [
 	[Ghost.State.CHASE, INF],
 ]
 
+## Ghost behaviour per maze (index = MazeGrid maze index): the same four
+## personalities, tuned differently so every maze plays a bit differently.
+##   speed          multiplier on the ghosts' speed
+##   scatter/chase  multipliers on the wave phase lengths (more chase = pushier)
+##   fright         multiplier on the blue time
+##   house          multiplier on the ghost-house dot limits / timeout (< 1 = out sooner)
+##   pinky_ahead    tiles in front of Pac-Man that Pinky aims for (original 4)
+##   inky_pivot     the pivot tile distance for Inky's vector trick (original 2)
+##   clyde_radius   tiles within which Clyde gets shy (original 8)
+const _MAZE_RULES: Array = [
+	{"name": "Classic", "speed": 1.0, "scatter": 1.0, "chase": 1.0, "fright": 1.0, "house": 1.0,
+		"pinky_ahead": 4, "inky_pivot": 2, "clyde_radius": 8},
+	{"name": "Ambush", "speed": 1.0, "scatter": 0.6, "chase": 1.0, "fright": 1.0, "house": 0.6,
+		"pinky_ahead": 5, "inky_pivot": 2, "clyde_radius": 8},
+	{"name": "Cunning", "speed": 1.03, "scatter": 1.0, "chase": 1.0, "fright": 0.8, "house": 1.0,
+		"pinky_ahead": 4, "inky_pivot": 3, "clyde_radius": 6},
+	{"name": "Marathon", "speed": 1.0, "scatter": 0.8, "chase": 1.5, "fright": 1.0, "house": 0.8,
+		"pinky_ahead": 4, "inky_pivot": 2, "clyde_radius": 10},
+	{"name": "Furious", "speed": 1.06, "scatter": 0.5, "chase": 1.0, "fright": 0.6, "house": 0.5,
+		"pinky_ahead": 6, "inky_pivot": 4, "clyde_radius": 5},
+]
+
 const _FRUIT_CHERRY := preload("res://assets/items/items_cherry.png")
 const _FRUIT_STRAWBERRY := preload("res://assets/items/items_strawberry.png")
 const _FRUIT_PEACH := preload("res://assets/items/items_peach.png")
@@ -616,6 +638,12 @@ func _begin_run() -> void:
 
 # --- info the ghosts ask for ---------------------------------------------
 
+## Value of a per-maze ghost rule (see _MAZE_RULES) for the maze in play.
+func rule_value(key: String) -> float:
+	var rules: Dictionary = _MAZE_RULES[clampi(MazeGrid.maze_index, 0, _MAZE_RULES.size() - 1)]
+	return float(rules[key])
+
+
 func player_cell() -> Vector2i:
 	return MazeGrid.world_to_cell(_player.global_position)
 
@@ -645,7 +673,8 @@ func _update_waves(delta: float) -> void:
 	if _wave_idx >= _WAVES.size() - 1:
 		return
 	_wave_elapsed += delta
-	if _wave_elapsed >= float(_WAVES[_wave_idx][1]):
+	var phase_mult := rule_value("scatter" if int(_WAVES[_wave_idx][0]) == Ghost.State.SCATTER else "chase")
+	if _wave_elapsed >= float(_WAVES[_wave_idx][1]) * phase_mult:
 		_wave_idx += 1
 		_wave_elapsed = 0.0
 		_apply_mode(_WAVES[_wave_idx][0])
@@ -665,23 +694,24 @@ func _update_releases(delta: float) -> void:
 
 	if _use_global_dots:
 		# Post-death: one shared counter drives every house exit.
-		if pinky and pinky.is_in_house() and _global_dots >= global_pinky_dots:
+		var hm := rule_value("house")
+		if pinky and pinky.is_in_house() and _global_dots >= roundi(global_pinky_dots * hm):
 			pinky.release()
-		if inky and inky.is_in_house() and _global_dots >= global_inky_dots:
+		if inky and inky.is_in_house() and _global_dots >= roundi(global_inky_dots * hm):
 			inky.release()
-		if clyde and clyde.is_in_house() and _global_dots >= global_clyde_dots:
+		if clyde and clyde.is_in_house() and _global_dots >= roundi(global_clyde_dots * hm):
 			clyde.release()
 		# Once Clyde is out the special rule is done - back to normal counters.
 		if clyde and not clyde.is_in_house():
 			_use_global_dots = false
 	else:
-		if inky and inky.is_in_house() and _dots_eaten >= inky_dot_limit:
+		if inky and inky.is_in_house() and _dots_eaten >= roundi(inky_dot_limit * rule_value("house")):
 			inky.release()
-		if clyde and clyde.is_in_house() and _dots_eaten >= clyde_dot_limit:
+		if clyde and clyde.is_in_house() and _dots_eaten >= roundi(clyde_dot_limit * rule_value("house")):
 			clyde.release()
 
 	_time_since_dot += delta
-	if _time_since_dot >= dot_timeout:
+	if _time_since_dot >= dot_timeout * rule_value("house"):
 		_time_since_dot = 0.0
 		var waiting := _next_waiting_ghost()
 		if waiting:
@@ -715,7 +745,7 @@ func _on_pill_eaten(kind: int, _cell: Vector2i) -> void:
 
 
 func _start_frightened() -> void:
-	_frightened_left = frightened_duration
+	_frightened_left = frightened_duration * rule_value("fright")
 	_flash_on = false
 	_flash_t = 0.0
 	_ghost_eat_chain = 0   # -> next eaten ghost is worth 200 again
@@ -1128,8 +1158,11 @@ func _intermission_act(level: int) -> int:
 func _play_intermission(act: int) -> void:
 	var im := Intermission.new()
 	im.setup(act, _player, _ghosts, _hud.offset.y if _hud else 0.0)
+	if _sound and _sound.has_method("play_intermission"):
+		im.min_duration = float(_sound.play_intermission(act))
 	add_child(im)
 	await im.finished
+	_sfx("stop_intermission")
 
 
 func _flash_maze(times: int) -> void:
@@ -1169,6 +1202,8 @@ func _apply_maze_for_level() -> bool:
 	var idx := MazeGrid.maze_for_level(current_level)
 	var changed := idx != MazeGrid.maze_index
 	MazeGrid.set_maze(idx)
+	for gh in _ghosts:
+		gh.speed_mult = rule_value("speed")
 	if _maze:
 		_maze.visible = false   # the old hand-made tile art of maze 0 is retired
 	if _maze_art:
