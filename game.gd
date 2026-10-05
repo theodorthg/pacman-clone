@@ -142,6 +142,7 @@ var _overlay: Node
 var _settings: Node
 var _sound: Node
 var _ghosts: Array[Ghost] = []
+var _maze_art: MazeArt
 
 var _configuring: bool = true
 var _next_extra_life: int = 0
@@ -218,6 +219,7 @@ func _ready() -> void:
 	for node in get_parent().get_children():
 		if node is Ghost:
 			_ghosts.append(node)
+	_setup_maze_art()
 	_player.died.connect(_on_player_died)
 	_pills.pill_eaten.connect(_on_pill_eaten)
 	if _pills.has_signal("all_eaten"):
@@ -1021,6 +1023,7 @@ func _level_clear_sequence() -> void:
 
 	# 3. level up + full reset
 	current_level += 1
+	_apply_maze_for_level()
 	_pills.reset_all()
 	_dots_eaten = 0
 	_time_since_dot = 0.0
@@ -1051,14 +1054,48 @@ func _level_clear_sequence() -> void:
 
 
 func _flash_maze(times: int) -> void:
-	var mat: ShaderMaterial = _maze.material if _maze else null
 	for i in times:
-		if mat:
-			mat.set_shader_parameter("flash", 1.0)
+		_set_maze_flash(1.0)
 		await get_tree().create_timer(0.18).timeout
-		if mat:
-			mat.set_shader_parameter("flash", 0.0)
+		_set_maze_flash(0.0)
 		await get_tree().create_timer(0.18).timeout
+
+
+func _set_maze_flash(v: float) -> void:
+	if _maze_art and _maze_art.visible:
+		_maze_art.flash = v
+	elif _maze:
+		var mat: ShaderMaterial = _maze.material
+		if mat:
+			mat.set_shader_parameter("flash", v)
+
+
+# --- several mazes (Ms. Pac-Man style) ----------------------------------
+
+## Mazes 1+ are drawn by a MazeArt node next to the original tilemap.
+func _setup_maze_art() -> void:
+	_maze_art = MazeArt.new()
+	_maze_art.visible = false
+	var parent := get_parent()
+	# the parent is still busy adding its children while our _ready runs
+	parent.add_child.call_deferred(_maze_art)
+	if _maze:
+		parent.move_child.call_deferred(_maze_art, _maze.get_index() + 1)
+	_apply_maze_for_level()
+
+
+## Switch collision grid + wall art to the maze of `current_level`. Returns true
+## when the maze actually changed (callers then rebuild the pills).
+func _apply_maze_for_level() -> bool:
+	var idx := MazeGrid.maze_for_level(current_level)
+	var changed := idx != MazeGrid.maze_index
+	MazeGrid.set_maze(idx)
+	if _maze:
+		_maze.visible = idx == 0
+	if _maze_art:
+		_maze_art.visible = idx != 0
+		_maze_art.setup(idx)
+	return changed
 
 
 # --- scoring / hud -----------------------------------------------
@@ -1142,6 +1179,7 @@ func _switch_player(idx: int) -> void:
 	_cur_extra_gap = float(s["extra_gap"])
 	_use_global_dots = bool(s["global_on"])
 	_global_dots = int(s["global_n"])
+	_apply_maze_for_level()
 	var layout: Dictionary = s["pills"]
 	if layout.is_empty():
 		_pills.reset_all()

@@ -23,6 +23,7 @@ var _total: int = 0          ## pill count of a full board
 
 
 func _ready() -> void:
+	MazeGrid.set_maze(0)   # a fresh scene is always level 1 (the grid is static)
 	_build()
 	var player := get_node_or_null(player_path)
 	if player and player.has_signal("reached_cell"):

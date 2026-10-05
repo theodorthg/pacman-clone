@@ -13,10 +13,6 @@ globale CLAUDE.md „TODO.md pro Projekt“). Neueste Einträge oben.
       wieder drin.)
 
 Ideen für später (Einschätzung 2026-10-03, noch nicht beauftragt):
-- [ ] Mehr als ein Labyrinth (wie Ms. Pac-Man): 4–6 eigene Labyrinthe,
-      Wechsel alle paar Level, je eigene Farbe/Musik; Labyrinthe als
-      ASCII-Raster aus einem Generator (wie make_levels.py bei
-      mario-clone), Selbsttest prüft Erreichbarkeit aller Punkte.
 - [ ] Zwischenspiele (Cutscenes) nach Level 2/5/9, wechselnde Früchte
       als Bonus, Geisterverhalten je Labyrinth leicht anders.
 - [ ] Spielstand/Continue ab dem erreichten Labyrinth.
@@ -43,6 +39,7 @@ Gemeinsam für die Serie (Vorlage: mario-clone v1.6–v1.9):
 
 ## Erledigt
 
+- [x] 2026-10-05 v1.3 Mehrere Labyrinthe: Original + 4 neue (`maze_data.gd`, erzeugt von `tools/make_mazes.py`: Skelett mit Geisterhaus/Tunnel/Mittelband bleibt, oben/unten zufällig aus Korridor-Gitter + Durchbrüchen, Seitengänge in Labyrinth 3/4); Wechsel Level 1–2 Original, 3–5 rosa, 6–9 türkis, 10–13 orange, ab 14 grün/rosa/türkis/orange im 4er-Takt. Gezeichnet von `maze_art.gd` (Original behält die Tilemap). Selbsttest prüft Erreichbarkeit, Sackgassen, feste Zellen. Pro Spieler im 2-Spieler-Modus eigenes Labyrinth je Level.
 - [x] 2026-10-05 2 Spieler abwechselnd: Startmenü-Schalter „1 Player / 2 Players (turns)“ (`players` in settings.cfg); pro Spieler eigener Punktestand, Leben, Level, Brett (`Pills.snapshot()/restore()`) und Extraleben-Schwellen; nach einem Tod wechselt der Zug („P2 READY!“, „P1 GAME OVER“ bei letztem Leben); Endbildschirm mit beiden Punkteständen/Gewinner und je ein Hall-of-Fame-Eintrag pro Spieler (Namensfeld nacheinander). Logik per Wegwerf-Headless-Test geprüft; noch nicht auf dem RG552 live gespielt.
 - [x] 2026-09-29 itch.io jetzt per `butler` in die Channels linux / android / windows / web (`theodorthg/pac-clone`, wie bei mario-clone); Patch-Release v1.2.1: Stand seit v1.2 (Splash mit Ladebalken, weißer Android-Startbildschirm) — damit Windows-Release und itch.io aktuell sind.
 - [x] 2026-09-27 Android-System-Startbildschirm (vor dem Splash) einheitlich

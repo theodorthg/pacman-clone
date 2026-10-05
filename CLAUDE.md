@@ -164,3 +164,22 @@ App-Start** (`Splash.shown` ist `static` und überlebt die Szenen-Reloads,
 die pacman für jeden neuen Lauf macht); `game.gd` pausiert den Tree
 währenddessen. Offene Punkte sammelt ab jetzt `TODO.md`.
 
+
+## Mehrere Labyrinthe + 2 Spieler (Stand 2026-10-05, v1.3)
+
+- **Labyrinthe**: `MazeGrid.GRID` ist jetzt `static var` (`MazeGrid.set_maze(i)`,
+  `maze_for_level(level)`), Daten in `maze_data.gd` (**generiert** von
+  `python3 tools/make_mazes.py`, Seeds/Seitengänge in `SPECS`; Labyrinth 0 =
+  Original). Fest in allen: Geisterhaus, Tunnelzeile 13, Mittelband Zeilen 8–18,
+  Startstreifen Zeile 22, Kraftpillen-Ecken, `NO_UP`-Zellen — nur oben (Zeilen
+  1–7) und unten (19–28) werden neu erzeugt. Labyrinth 0 behält die handgemalte
+  Tilemap (`tiles`), 1–4 zeichnet `maze_art.gd` (Wände pastell + dunkle Kontur,
+  Korridore = Clear-Color-Blau). `Pills._ready` setzt Labyrinth 0 (statisch!
+  nach Szenen-Reload sonst veraltet). Vor `Pills.reset_all()` immer
+  `Game._apply_maze_for_level()`.
+- **2 Spieler abwechselnd**: Zustand pro Spieler in `Game._ps`, Wechsel in
+  `_switch_player()` (inkl. Pills-Snapshot und Labyrinth).
+- Selbsttest `_check_maze()` prüft jedes Labyrinth (Erreichbarkeit, Sackgassen,
+  feste Zellen). `draw_line(from, to, color, width)` — Farbe VOR Breite.
+- `class_name`-Dateien neu → erst `godot --headless --path . --import`, sonst
+  kennt `--script` sie nicht.
