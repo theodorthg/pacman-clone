@@ -83,6 +83,14 @@ const _LOOP_FILES := {
 	"eyes":   "ghost-catched-move-home.wav",
 }
 
+signal mute_changed(muted: bool)
+
+## Master mute (the speaker button next to Pause, key M, pad Select). Kept
+## separate from the per-sound sliders: AudioServer's Master bus is muted as a
+## whole, so un-muting restores exactly the previous mix. Persisted in
+## settings.cfg [sound] muted - deliberately NOT tied to SOUND_CFG_VERSION.
+var muted: bool = false
+
 var _oneshot: Dictionary = {}          ## key -> AudioStreamPlayer
 var _loop: Dictionary = {}             ## key -> AudioStreamPlayer
 var _loop_wanted: Dictionary = {}      ## key -> bool (survives a natural finish)
@@ -91,7 +99,41 @@ var _preview: AudioStreamPlayer
 var _preview_gen: int = 0
 
 
+## Registers the `mute` input action (M + pad Select/Back, any device) unless
+## project.godot already has it. Safe to call repeatedly.
+static func ensure_mute_action() -> void:
+	if InputMap.has_action("mute"):
+		return
+	InputMap.add_action("mute")
+	var k := InputEventKey.new()
+	k.physical_keycode = KEY_M
+	InputMap.action_add_event("mute", k)
+	var j := InputEventJoypadButton.new()
+	j.button_index = JOY_BUTTON_BACK
+	j.device = -1
+	InputMap.action_add_event("mute", j)
+
+
+func set_muted(on: bool) -> void:
+	muted = on
+	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), on)
+	var c := ConfigFile.new()
+	c.load(_CFG_PATH)
+	c.set_value(_CFG_SECTION, "muted", on)
+	c.save(_CFG_PATH)
+	mute_changed.emit(on)
+
+
+func toggle_mute() -> void:
+	set_muted(not muted)
+
+
 func _ready() -> void:
+	ensure_mute_action()
+	var mc := ConfigFile.new()
+	if mc.load(_CFG_PATH) == OK:
+		muted = bool(mc.get_value(_CFG_SECTION, "muted", false))
+		AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), muted)
 	for key in _ONESHOT_FILES:
 		var cfg: Array = _ONESHOT_FILES[key]
 		var p := AudioStreamPlayer.new()

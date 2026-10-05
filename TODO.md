@@ -36,6 +36,7 @@ Gemeinsam für die Serie (Vorlage: mario-clone v1.6–v1.9):
 
 ## Erledigt
 
+- [x] 2026-10-05 v1.11 Mute-Button: runder Lautsprecher-Button links neben Pause (`mute_button.gd`, feste Position/Größe in `TouchControls._layout()`), Taste M und Pad-Select (`SoundManager.ensure_mute_action()`), Master-Bus-Mute, gespeichert in settings.cfg `[sound] muted`; Hilfe-Grafik „Keyboard / Gamepad“ zeigt ihn. Als Pflicht-Feature (Punkt 21) in die globale CLAUDE.md geschrieben.
 - [x] 2026-10-05 v1.11 Übungsmodus (Cheat wie bei mario-clone): im Startmenü Gamepad B, Y, X, A (A wird geschluckt) / Tastatur L E V E L S / Titel 5× antippen → Levelliste 1–99 (Farbe = Labyrinth); gestartete Läufe sind „cheated“: kein Highscore, kein Hall-of-Fame-Eintrag („PRACTICE RUN“-Hinweis), kein Continue-Checkpoint, HUD-Marke „PRACTICE“. Hilfeseite „Practice Mode“.
 - [x] 2026-10-05 v1.10 Jingles für die Zwischenspiele (`tools/make_jingles.py` → `assets/sounds/intermission1-3.wav`, Chiptune, Regler „Intermission jingle“ in den Sound-Einstellungen, Bild bleibt bis zum Ende des Jingles). Geisterverhalten je Labyrinth (`Game._MAZE_RULES`: Tempo, Scatter-/Chase-Dauer, Blauzeit, Geisterhaus-Limits, Pinky-/Inky-/Clyde-Parameter; Classic/Ambush/Cunning/Marathon/Furious).
 - [x] 2026-10-05 v1.9 Zwischenspiele (`intermission.gd`): nach Level 2, 5, 9 und danach jedem 4. Level ein kurzer Cartoon aus den Spiel-Sprites (Akt 1 Blinky jagt Pac-Man und wird dann vom Riesen-Pac-Man gejagt, Akt 2 Pinky+Inky, Akt 3 alle vier, am Ende rasen die Augen heim); ~8 s, mit beliebiger Taste/Tipp überspringbar.

@@ -83,14 +83,28 @@
 
   <rect x="40" y="720" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
 
+  <!-- pause row -->
   <g fill="#1c2244" stroke="#4a5480" stroke-width="2">
-    <rect x="295" y="770" width="90" height="50" rx="8"/>
-    <rect x="405" y="770" width="90" height="50" rx="8"/>
-    <rect x="515" y="770" width="90" height="50" rx="8"/>
+    <rect x="295" y="742" width="90" height="46" rx="8"/>
+    <rect x="405" y="742" width="90" height="46" rx="8"/>
+    <rect x="515" y="742" width="90" height="46" rx="8"/>
   </g>
-  <text x="340" y="802" text-anchor="middle" font-size="22" fill="#eef4ff">P</text>
-  <text x="450" y="802" text-anchor="middle" font-size="18" fill="#eef4ff">Esc</text>
-  <text x="560" y="802" text-anchor="middle" font-size="17" fill="#eef4ff">Start</text>
-  <text x="450" y="880" text-anchor="middle" font-size="26" font-weight="700" fill="#eef4ff">P, Esc, Start, or the pause button - pause</text>
-  <text x="450" y="920" text-anchor="middle" font-size="22" fill="#8fa3c8">a key press aims ahead too, just like a mouse click</text>
+  <text x="340" y="773" text-anchor="middle" font-size="22" fill="#eef4ff">P</text>
+  <text x="450" y="773" text-anchor="middle" font-size="18" fill="#eef4ff">Esc</text>
+  <text x="560" y="773" text-anchor="middle" font-size="17" fill="#eef4ff">Start</text>
+  <text x="450" y="824" text-anchor="middle" font-size="24" font-weight="700" fill="#eef4ff">P, Esc, Start, or the pause button - pause</text>
+
+  <rect x="40" y="846" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
+
+  <!-- mute row: speaker icon + keys -->
+  <g fill="#1c2244" stroke="#4a5480" stroke-width="2">
+    <rect x="350" y="868" width="90" height="46" rx="8"/>
+    <rect x="460" y="868" width="110" height="46" rx="8"/>
+    <circle cx="250" cy="891" r="28"/>
+  </g>
+  <path d="M232 883 h8 l10 -9 v34 l-10 -9 h-8 z" fill="#eef4ff"/>
+  <path d="M258 878 q8 13 0 26 M264 872 q13 19 0 38" fill="none" stroke="#eef4ff" stroke-width="3"/>
+  <text x="395" y="899" text-anchor="middle" font-size="22" fill="#eef4ff">M</text>
+  <text x="515" y="899" text-anchor="middle" font-size="18" fill="#eef4ff">Select</text>
+  <text x="450" y="950" text-anchor="middle" font-size="24" font-weight="700" fill="#eef4ff">M, Select, or the speaker button - mute</text>
 </svg>

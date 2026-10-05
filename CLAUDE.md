@@ -225,3 +225,5 @@ währenddessen. Offene Punkte sammelt ab jetzt `TODO.md`.
   bzw. L-E-V-E-L-S bzw. Titel 5× tippen) → `_mode_screen("levels")`;
   `_on_play(level, true)` setzt `cfg["cheat"]` → `Game.cheated` (kein Highscore/
   Checkpoint, `_game_stats()["cheated"]` blendet im Overlay die HoF-Eingabe aus).
+- **Mute-Button (v1.11)**: siehe globale CLAUDE.md Punkt 21; `mute_button.gd`,
+  `SoundManager.set_muted()`, Action `mute` zur Laufzeit registriert.

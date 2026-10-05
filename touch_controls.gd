@@ -22,12 +22,15 @@ extends CanvasLayer
 
 @export var player_path: NodePath = ^"../player"
 @export var overlay_path: NodePath = ^"../overlay"
+@export var sound_path: NodePath = ^"../audio"
 
 @onready var _indicator: SwipeIndicator = $indicator
 @onready var _pause: PauseButton = $pause_btn
+@onready var _mute: MuteButton = $mute_btn
 
 var _player: Node
 var _overlay: Node
+var _sound: Node
 var _enabled: bool = false
 
 
@@ -86,6 +89,12 @@ func _ready() -> void:
 	_player = get_node_or_null(player_path)
 	_overlay = get_node_or_null(overlay_path)
 	_pause.tapped.connect(_on_pause)
+	SoundManager.ensure_mute_action()
+	_sound = get_node_or_null(sound_path)
+	_mute.tapped.connect(_on_mute)
+	if _sound and _sound.has_signal("mute_changed"):
+		_sound.mute_changed.connect(func(m: bool) -> void: _mute.muted = m)
+		_mute.muted = bool(_sound.muted)
 
 
 ## `_input`, not `_unhandled_input`: this must see the very first touch even if
@@ -95,6 +104,9 @@ func _ready() -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch or event is InputEventScreenDrag:
 		confirm_touch_seen()
+	# M / pad Select mutes anywhere - menus and pause included
+	if event.is_action_pressed("mute") and not event.is_echo():
+		_on_mute()
 
 
 ## Broadcast target for confirm_touch_seen(); also called directly below.
@@ -117,6 +129,7 @@ func _process(_dt: float) -> void:
 	var show_compass := _enabled and playing
 	visible = show_pause or show_compass
 	_pause.visible = show_pause
+	_mute.visible = show_pause
 	_indicator.visible = show_compass
 	if not visible:
 		return
@@ -136,6 +149,7 @@ const _PAUSE_X := 362.0       ## between HIGH SCORE (ends ~x278) and LEVEL (star
 ## report: hitting it was "fummelig" - fiddly - not that it looked small).
 const _PAUSE_SIZE := 40.0
 const _PAUSE_HIT_SIZE := 56.0   ## design-guideline minimum touch target
+const _MUTE_X := 306.0          ## left of the pause button (hit areas just touch)
 
 
 func _layout() -> void:
@@ -147,8 +161,18 @@ func _layout() -> void:
 	_pause.size = Vector2(_PAUSE_HIT_SIZE, _PAUSE_HIT_SIZE)
 	_pause.position = Vector2(_PAUSE_X - _PAUSE_HIT_SIZE * 0.5, _ROW_Y - _PAUSE_HIT_SIZE * 0.5)
 	_pause.visual_scale = _PAUSE_SIZE / _PAUSE_HIT_SIZE
+	# explicit size + position every frame (never anchors/containers, which can
+	# still be size 0 when first laid out - the speaker would be invisible)
+	_mute.size = Vector2(_PAUSE_HIT_SIZE, _PAUSE_HIT_SIZE)
+	_mute.position = Vector2(_MUTE_X - _PAUSE_HIT_SIZE * 0.5, _ROW_Y - _PAUSE_HIT_SIZE * 0.5)
+	_mute.visual_scale = _PAUSE_SIZE / _PAUSE_HIT_SIZE
 
 
 func _on_pause() -> void:
 	if _overlay and _overlay.has_method("show_pause") and not get_tree().paused:
 		_overlay.show_pause()
+
+
+func _on_mute() -> void:
+	if _sound and _sound.has_method("toggle_mute"):
+		_sound.toggle_mute()
