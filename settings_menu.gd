@@ -137,7 +137,10 @@ func _ready() -> void:
 	_net.hosts_changed.connect(func(h: Dictionary) -> void:
 		_lan_hosts = h
 		if _mode_panel.visible and _mode_screen_name == "lan_join":
-			_mode_screen("lan_join", {"keep_focus": true}))
+			# the list was rebuilt: only keep the cursor in the IP field if it
+			# was there (otherwise the on-screen keyboard pops up by itself)
+			var typing := get_viewport().gui_get_focus_owner() is LineEdit
+			_mode_screen("lan_join", {"keep_focus": typing}))
 	_refresh_mode_btn()
 	_continue_btn = _help_btn.duplicate() as Button
 	_continue_btn.name = "continue_btn"

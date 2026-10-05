@@ -39,7 +39,7 @@ func _init() -> void:
 	var turns := 0
 	var busy := false
 	var t := 0.0
-	while not g._game_over and t < 60.0:
+	while not g._game_over and t < 300.0:
 		await create_timer(0.1).timeout
 		t += 0.1
 		if g._net != null and g._started and not g._net_waiting and not g._dying and not busy:
