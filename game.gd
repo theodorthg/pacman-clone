@@ -86,8 +86,8 @@ const FRIGHTENED_FLASH_INTERVAL := 0.2
 @export var fruit_pos: Vector2 =  Vector2(240, 472) #Vector2(240, 376) # alternative Vector2(216, 424)
 @export var fruit_dot_1: int = 40
 @export var fruit_dot_2: int = 100
-@export var fruit_time_min: float = 9.0
-@export var fruit_time_max: float = 10.0
+@export var fruit_time_min: float = 14.0
+@export var fruit_time_max: float = 18.0
 
 ## Points a plain dot is worth (settable in the start menu). Power pill, ghost
 ## chain and fruit values are fixed.
@@ -734,12 +734,13 @@ func _spawn_fruit() -> void:
 	if _fruit != null:
 		return
 	var f := fruit_for_level(current_level)
-	var spr := Sprite2D.new()
+	var spr := FruitWalker.new()
 	spr.texture = f["tex"]
 	spr.scale = Vector2(2.0, 2.0)   # 16px art -> ~one tile on screen, matching the sprites
-	spr.position = fruit_pos
 	spr.z_index = 5
 	get_parent().add_child(spr)
+	spr.start(randf() < 0.5)         # wanders in through a side tunnel
+	spr.exited.connect(_on_fruit_exited)
 	# gentle pulse so it stands out on the corridor
 	var tw := spr.create_tween().set_loops()
 	tw.tween_property(spr, "scale", Vector2(2.3, 2.3), 0.5).set_trans(Tween.TRANS_SINE)
@@ -753,8 +754,8 @@ func _update_fruit(delta: float) -> void:
 	if _fruit == null:
 		return
 	_fruit_time_left -= delta
-	if _fruit_time_left <= 0.0:
-		_remove_fruit()
+	if _fruit_time_left <= 0.0 and not (_fruit as FruitWalker).is_leaving():
+		(_fruit as FruitWalker).leave()   # walks to a tunnel and exits -> _on_fruit_exited
 
 
 func _check_fruit_eaten() -> void:
@@ -774,6 +775,15 @@ func _tally_fruit(points: int, tex: Texture2D) -> void:
 		_fruit_tally[points][1] += 1
 	else:
 		_fruit_tally[points] = [tex, 1]
+
+
+func _on_fruit_exited() -> void:
+	_fruit = null
+
+
+func _freeze_fruit(on: bool) -> void:
+	if _fruit != null:
+		_fruit.set_physics_process(not on)
 
 
 func _remove_fruit() -> void:
@@ -835,6 +845,7 @@ func _eat_ghost(g: Ghost) -> void:
 
 
 func _set_actors_frozen(on: bool) -> void:
+	_freeze_fruit(on)
 	_player.set_physics_process(not on)
 	for g in _ghosts:
 		g.set_physics_process(not on)
@@ -874,6 +885,7 @@ func _spawn_text_popup(screen_pos: Vector2, text: String, color: Color) -> void:
 func _death_sequence() -> void:
 	_freeze_left = 0.0
 	_player.freeze()
+	_freeze_fruit(true)
 	for g in _ghosts:
 		g.set_physics_process(false)
 	_sfx("stop_all")
