@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="980" viewBox="0 0 900 980" font-family="DejaVu Sans, 'Liberation Sans', sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#141225"/><stop offset="1" stop-color="#07060c"/>
+    </linearGradient>
+    <marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8cd9ff"/>
+    </marker>
+  </defs>
+  <rect width="900" height="980" fill="url(#bg)"/>
+  <rect x="14" y="14" width="872" height="952" rx="18" fill="none" stroke="#fff24d" stroke-opacity="0.20" stroke-width="2"/>
+  <text x="450" y="105" font-size="34" fill="#eef4ff" font-weight="700" text-anchor="middle">Practice mode</text>
+  <text x="450" y="142" font-size="22" fill="#8fa3c8" text-anchor="middle">on the start screen, enter a secret code</text>
+  <rect x="40" y="190" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
+  <text x="450" y="240" font-size="26" fill="#eef4ff" font-weight="700" text-anchor="middle">Gamepad</text>
+  <circle cx="240" cy="310" r="36" fill="#1c2244" stroke="#4a5480" stroke-width="3"/>
+  <text x="240" y="322" font-size="32" fill="#eef4ff" font-weight="700" text-anchor="middle">B</text>
+  <path d="M286 310 L336 310" stroke="#8cd9ff" stroke-width="5" marker-end="url(#ah)"/>
+  <circle cx="380" cy="310" r="36" fill="#1c2244" stroke="#4a5480" stroke-width="3"/>
+  <text x="380" y="322" font-size="32" fill="#eef4ff" font-weight="700" text-anchor="middle">Y</text>
+  <path d="M426 310 L476 310" stroke="#8cd9ff" stroke-width="5" marker-end="url(#ah)"/>
+  <circle cx="520" cy="310" r="36" fill="#1c2244" stroke="#4a5480" stroke-width="3"/>
+  <text x="520" y="322" font-size="32" fill="#eef4ff" font-weight="700" text-anchor="middle">X</text>
+  <path d="M566 310 L616 310" stroke="#8cd9ff" stroke-width="5" marker-end="url(#ah)"/>
+  <circle cx="660" cy="310" r="36" fill="#1c2244" stroke="#4a5480" stroke-width="3"/>
+  <text x="660" y="322" font-size="32" fill="#eef4ff" font-weight="700" text-anchor="middle">A</text>
+  <text x="450" y="385" font-size="22" fill="#8fa3c8" text-anchor="middle">press B, Y, X, then A</text>
+  <rect x="40" y="420" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
+  <text x="450" y="470" font-size="26" fill="#eef4ff" font-weight="700" text-anchor="middle">Keyboard</text>
+  <rect x="185" y="500" width="70" height="70" rx="10" fill="#1c2244" stroke="#4a5480" stroke-width="3"/>
+  <text x="220" y="547" font-size="32" fill="#eef4ff" font-weight="700" text-anchor="middle">L</text>
+  <rect x="277" y="500" width="70" height="70" rx="10" fill="#1c2244" stroke="#4a5480" stroke-width="3"/>
+  <text x="312" y="547" font-size="32" fill="#eef4ff" font-weight="700" text-anchor="middle">E</text>
+  <rect x="369" y="500" width="70" height="70" rx="10" fill="#1c2244" stroke="#4a5480" stroke-width="3"/>
+  <text x="404" y="547" font-size="32" fill="#eef4ff" font-weight="700" text-anchor="middle">V</text>
+  <rect x="461" y="500" width="70" height="70" rx="10" fill="#1c2244" stroke="#4a5480" stroke-width="3"/>
+  <text x="496" y="547" font-size="32" fill="#eef4ff" font-weight="700" text-anchor="middle">E</text>
+  <rect x="553" y="500" width="70" height="70" rx="10" fill="#1c2244" stroke="#4a5480" stroke-width="3"/>
+  <text x="588" y="547" font-size="32" fill="#eef4ff" font-weight="700" text-anchor="middle">L</text>
+  <rect x="645" y="500" width="70" height="70" rx="10" fill="#1c2244" stroke="#4a5480" stroke-width="3"/>
+  <text x="680" y="547" font-size="32" fill="#eef4ff" font-weight="700" text-anchor="middle">S</text>
+  <text x="450" y="610" font-size="22" fill="#8fa3c8" text-anchor="middle">or tap the PAC-MAN title 5 times (touch)</text>
+  <rect x="40" y="650" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
+  <text x="450" y="710" font-size="26" fill="#fff24d" font-weight="700" text-anchor="middle">A level list opens</text>
+  <text x="450" y="748" font-size="22" fill="#8fa3c8" text-anchor="middle">Jump to any level and practise it.</text>
+  <text x="450" y="782" font-size="22" fill="#8fa3c8" text-anchor="middle">The colours show the five mazes.</text>
+  <rect x="40" y="820" width="820" height="2" fill="#fff24d" fill-opacity="0.18"/>
+  <text x="450" y="872" font-size="26" fill="#fff24d" font-weight="700" text-anchor="middle">Nothing is saved</text>
+  <text x="450" y="908" font-size="22" fill="#8fa3c8" text-anchor="middle">no high score, no Hall of Fame entry,</text>
+  <text x="450" y="940" font-size="22" fill="#8fa3c8" text-anchor="middle">no Continue checkpoint.</text>
+</svg>

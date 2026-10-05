@@ -78,6 +78,7 @@ const HELP_PAGES: Array[Dictionary] = [
 	{"title": "BONUS FRUIT", "file": "fruit"},
 	{"title": "TWO PLAYERS", "file": "players"},
 	{"title": "MAZES & CONTINUE", "file": "continue"},
+	{"title": "PRACTICE MODE", "file": "practice"},
 	{"title": "SETTINGS", "file": "settings"},
 ]
 
@@ -91,6 +92,8 @@ const _HELP_SWIPE_MIN := 40.0
 ## network (online relay or Wi-Fi/LAN, each on their own device).
 ## `_players` (1/2) is the persisted local choice ("players" in section "s").
 var _players: int = 1
+const LEVEL_TINTS := [Color(0.55, 0.8, 1.0), Color(1.0, 0.7, 0.85), Color(0.6, 0.95, 0.9),
+	Color(1.0, 0.8, 0.5), Color(0.7, 0.95, 0.6)]
 var _pending_level: int = 1   ## 1 = Play, else the Continue checkpoint
 var _mode_panel: VBoxContainer
 var _mode_screen_name: String = ""
@@ -114,6 +117,9 @@ func _ready() -> void:
 	_audio = get_node_or_null(^"../audio")
 
 	_play_btn.pressed.connect(func() -> void: _open_mode_menu(1))
+	var root_title := $center/panel_frame/inner/root/title as Label
+	root_title.mouse_filter = Control.MOUSE_FILTER_STOP
+	root_title.gui_input.connect(_on_title_input)
 	_mode_panel = VBoxContainer.new()
 	_mode_panel.name = "mode_panel"
 	_mode_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -177,6 +183,56 @@ func apply_touch_layout() -> void:
 		var c := $center as BoxContainer
 		c.alignment = BoxContainer.ALIGNMENT_BEGIN
 		c.offset_top = 40.0
+
+
+## Practice cheat (like mario-clone's level select), start screen only:
+## gamepad B, Y, X, A (A last - swallowed so it doesn't press "Play"),
+## keyboard L E V E L S, or tap the title 5 times. Opens the level list; runs
+## started from it never touch the high scores or the Continue checkpoint.
+const CHEAT_PAD := ["j1", "j3", "j2", "j0"]
+const CHEAT_KEYS := ["kL", "kE", "kV", "kE", "kL", "kS"]
+var _cheat_buf: Array[String] = []
+var _title_taps := 0
+var _title_tap_t := 0
+
+
+func _input(event: InputEvent) -> void:
+	if not (visible and _root.visible):
+		_cheat_buf.clear()
+		return
+	var tok := ""
+	if event is InputEventJoypadButton and event.pressed:
+		tok = "j%d" % event.button_index
+	elif event is InputEventKey and event.pressed and not event.echo:
+		var k: int = event.physical_keycode if event.physical_keycode != 0 else event.keycode
+		tok = "k" + OS.get_keycode_string(k).to_upper()
+	if tok == "":
+		return
+	_cheat_buf.append(tok)
+	if _cheat_buf.size() > 8:
+		_cheat_buf.remove_at(0)
+	for code in [CHEAT_PAD, CHEAT_KEYS]:
+		if _cheat_buf.size() >= code.size() and _cheat_buf.slice(-code.size()) == code:
+			_cheat_buf.clear()
+			get_viewport().set_input_as_handled()
+			_open_level_select()
+			return
+
+
+func _on_title_input(event: InputEvent) -> void:
+	if (event is InputEventMouseButton or event is InputEventScreenTouch) and event.pressed:
+		var now := Time.get_ticks_msec()
+		_title_taps = _title_taps + 1 if now - _title_tap_t < 600 else 1
+		_title_tap_t = now
+		if _title_taps >= 5:
+			_title_taps = 0
+			_open_level_select()
+
+
+func _open_level_select() -> void:
+	if _audio and _audio.has_method("play_eat_item"):
+		_audio.play_eat_item()
+	_mode_screen("levels")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -492,6 +548,30 @@ func _mode_screen(screen: String, ctx: Dictionary = {}) -> void:
 				_m_title("CONNECTING", 28)
 				_m_label(str(ctx.get("text", "Opening a game on the online server...")), 16)
 			first = _m_button("Cancel", _mode_back)
+		"levels":
+			_m_title("PRACTICE", 28)
+			_m_label("Pick a level to practise. Nothing is saved to the high scores.", 14)
+			var scroll := ScrollContainer.new()
+			scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+			scroll.custom_minimum_size = Vector2(380, 330)
+			_mode_panel.add_child(scroll)
+			var grid := GridContainer.new()
+			grid.columns = 5
+			grid.add_theme_constant_override("h_separation", 6)
+			grid.add_theme_constant_override("v_separation", 6)
+			scroll.add_child(grid)
+			for lvl in range(1, 100):
+				var lb := Button.new()
+				lb.text = str(lvl)
+				lb.custom_minimum_size = Vector2(66, 44)
+				lb.add_theme_font_size_override("font_size", 18)
+				lb.add_theme_color_override("font_color", LEVEL_TINTS[MazeGrid.maze_for_level(lvl)])
+				lb.pressed.connect(func() -> void: _on_play(lvl, true))
+				grid.add_child(lb)
+				if first == null:
+					first = lb
+			_m_label("Colours = the five mazes. B goes back.", 13)
+			_m_button("Back", _mode_back)
 		"info":
 			_m_title("TWO PLAYERS", 28)
 			_m_label(str(ctx.get("text", "")), 16)
@@ -508,7 +588,7 @@ func _pick_local(n: int) -> void:
 
 func _mode_back() -> void:
 	match _mode_screen_name:
-		"menu":
+		"menu", "levels":
 			_show(_root)
 		"online", "lan":
 			_mode_screen("menu")
@@ -574,9 +654,10 @@ func _show_sound() -> void:
 	_show(_sound)
 
 
-func _on_play(start_level: int = 1) -> void:
+func _on_play(start_level: int = 1, cheat: bool = false) -> void:
 	var cfg := _read()
 	cfg["start_level"] = start_level
+	cfg["cheat"] = cheat
 	_save(cfg)
 	visible = false
 	get_tree().paused = false
@@ -710,7 +791,7 @@ func _save(cfg: Dictionary) -> void:
 	var c := ConfigFile.new()
 	c.load(_PATH)
 	for k in cfg:
-		if k == "volumes" or k == "start_level" or k == "net" or k == "net_role":
+		if k == "volumes" or k == "start_level" or k == "net" or k == "net_role" or k == "cheat":
 			continue   # SoundManager owns section "sound"
 		c.set_value("s", k, cfg[k])
 	c.save(_PATH)

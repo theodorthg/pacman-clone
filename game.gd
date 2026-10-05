@@ -222,6 +222,9 @@ var _ps: Array = []   ## [{score, lives, level, dots, pills, next_extra, extra_g
 
 ## --- two players on two devices (TurnsNet: online relay or Wi-Fi/LAN) ------
 ## Each device simulates only its OWN turns; `_ps[remote]` is fed by messages.
+## Practice run started from the level-select cheat (settings_menu.gd): no
+## high score, no Hall of Fame entry, no Continue checkpoint.
+var cheated: bool = false
 var _net: TurnsNet
 var _net_local: int = 0          ## 0 = host (player 1, starts), 1 = guest
 var _net_waiting: bool = false   ## the other player is on turn
@@ -543,6 +546,14 @@ func _arm_extra_lives() -> void:
 ## Play pressed on the start menu.
 func _on_settings_chosen(cfg: Dictionary) -> void:
 	_apply_config(cfg, true)
+	cheated = bool(cfg.get("cheat", false))
+	if cheated and _hud:
+		var tag := Label.new()
+		tag.text = "PRACTICE"
+		tag.position = Vector2(20, 62)
+		tag.add_theme_font_size_override("font_size", 12)
+		tag.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3))
+		_hud.add_child(tag)
 	var start_level := int(cfg.get("start_level", 1))
 	if start_level > 1:
 		# "Continue": every player starts at the saved level (fresh score/lives)
@@ -836,6 +847,8 @@ func _tally_fruit(points: int, tex: Texture2D) -> void:
 ## Remember the first level of a new maze block as the "Continue" start point
 ## (only ever moves forward).
 func _save_checkpoint(level: int) -> void:
+	if cheated:
+		return
 	if MazeGrid.maze_for_level(level) == MazeGrid.maze_for_level(level - 1):
 		return
 	var c := ConfigFile.new()
@@ -1073,6 +1086,7 @@ func _game_stats() -> Dictionary:
 		"level": current_level,
 		"ghosts": _ghosts_eaten,
 		"fruits": fruits,
+		"cheated": cheated,
 	}
 	if _players > 1:
 		var scores: Array = []
@@ -1216,7 +1230,7 @@ func _apply_maze_for_level() -> bool:
 
 func _add_score(points: int) -> void:
 	score += points
-	if score > highscore:
+	if score > highscore and not cheated:
 		highscore = score
 		_save_highscore()
 	while _next_extra_life > 0 and score >= _next_extra_life:

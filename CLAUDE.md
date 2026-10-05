@@ -221,3 +221,7 @@ währenddessen. Offene Punkte sammelt ab jetzt `TODO.md`.
   deterministisch `assets/sounds/intermission1-3.wav` (Ton prüfen ohne Zuhören:
   `ffmpeg -af volumedetect`); `SoundManager.play_intermission(act)` liefert die
   Länge, `Intermission.min_duration` hält das Bild so lange.
+- **Übungsmodus (v1.11)**: Code in `SettingsMenu._input()` (B=1, Y=3, X=2, A=0
+  bzw. L-E-V-E-L-S bzw. Titel 5× tippen) → `_mode_screen("levels")`;
+  `_on_play(level, true)` setzt `cfg["cheat"]` → `Game.cheated` (kein Highscore/
+  Checkpoint, `_game_stats()["cheated"]` blendet im Overlay die HoF-Eingabe aus).

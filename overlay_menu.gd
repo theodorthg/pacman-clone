@@ -335,7 +335,12 @@ func _fill_stats(d: Dictionary, show_hof: bool = false) -> void:
 			row.add_child(cell)
 		_stats.add_child(row)
 
-	if show_hof:
+	if show_hof and bool(d.get("cheated", false)):
+		_hof_queue.clear()
+		_hof_done = 0
+		_hof_committed_this_run = true
+		_stats.add_child(_hof_title_label("PRACTICE RUN - NO HIGH SCORE ENTRY"))
+	elif show_hof:
 		_hof_queue.clear()
 		if scores.size() > 1:
 			for i in scores.size():
