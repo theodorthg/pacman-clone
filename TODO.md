@@ -12,10 +12,11 @@ globale CLAUDE.md „TODO.md pro Projekt“). Neueste Einträge oben.
       MCP-Autoload-Zeilen in `project.godot` sind seit dem Splash-Commit
       wieder drin.)
 
+- [ ] Hilfeseiten ergänzen: 2-Spieler-Modus, Continue, wandernde Frucht (nur im Text/Grafik noch nicht erwähnt).
+
 Ideen für später (Einschätzung 2026-10-03, noch nicht beauftragt):
 - [ ] Zwischenspiele (Cutscenes) nach Level 2/5/9, Geisterverhalten je
       Labyrinth leicht anders.
-- [ ] Spielstand/Continue ab dem erreichten Labyrinth.
 - Gleichzeitig zu zweit (beide im selben Labyrinth, sich nach einer
   Kraftpille gegenseitig fressen — „Battle Royale“-Art) wäre möglich,
   ist aber mit Swipe-Steuerung nur per Netz sinnvoll.
@@ -39,6 +40,7 @@ Gemeinsam für die Serie (Vorlage: mario-clone v1.6–v1.9):
 
 ## Erledigt
 
+- [x] 2026-10-05 v1.5 Continue: beim Betreten eines neuen Labyrinth-Blocks (Level 3/6/10/14/18/…) wird der Start-Level gespeichert (`progress/checkpoint_level` in settings.cfg); Startmenü zeigt dann „Continue (Level N)“ — neuer Lauf ab diesem Level mit frischem Punktestand und Leben (beide Spieler im 2-Spieler-Modus).
 - [x] 2026-10-05 v1.4 Wandernde Frucht (`fruit_walker.gd`): kommt durch einen Seitentunnel, biegt an jeder Kreuzung zufällig ab (nie direkt zurück), ist mit 55 px/s deutlich langsamer als Pac-Man, bleibt 14–18 s und läuft dann per BFS zum nächsten Tunnel und verschwindet; bleibt bei Hitstop/Tod stehen.
 - [x] 2026-10-05 v1.3 Mehrere Labyrinthe: Original + 4 neue (`maze_data.gd`, erzeugt von `tools/make_mazes.py`: Skelett mit Geisterhaus/Tunnel/Mittelband bleibt, oben/unten zufällig aus Korridor-Gitter + Durchbrüchen, Seitengänge in Labyrinth 3/4); Wechsel Level 1–2 Original, 3–5 rosa, 6–9 türkis, 10–13 orange, ab 14 grün/rosa/türkis/orange im 4er-Takt. Gezeichnet von `maze_art.gd` (Original behält die Tilemap). Selbsttest prüft Erreichbarkeit, Sackgassen, feste Zellen. Pro Spieler im 2-Spieler-Modus eigenes Labyrinth je Level.
 - [x] 2026-10-05 2 Spieler abwechselnd: Startmenü-Schalter „1 Player / 2 Players (turns)“ (`players` in settings.cfg); pro Spieler eigener Punktestand, Leben, Level, Brett (`Pills.snapshot()/restore()`) und Extraleben-Schwellen; nach einem Tod wechselt der Zug („P2 READY!“, „P1 GAME OVER“ bei letztem Leben); Endbildschirm mit beiden Punkteständen/Gewinner und je ein Hall-of-Fame-Eintrag pro Spieler (Namensfeld nacheinander). Logik per Wegwerf-Headless-Test geprüft; noch nicht auf dem RG552 live gespielt.

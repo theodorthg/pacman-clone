@@ -87,6 +87,9 @@ const _HELP_SWIPE_MIN := 40.0
 ## code right below Play; persisted as "players" in section "s".
 var _players: int = 1
 var _players_btn: Button
+## "Continue (Level N)": start a new run at the first level of the furthest maze
+## reached so far (checkpoint written by game.gd, section "progress").
+var _continue_btn: Button
 var _vol_slider: Dictionary = {}   ## sound key -> HSlider
 var _vol_label: Dictionary = {}    ## sound key -> Label ("NN%")
 var _audio: Node
@@ -100,7 +103,7 @@ func _ready() -> void:
 	apply_touch_layout()
 	_audio = get_node_or_null(^"../audio")
 
-	_play_btn.pressed.connect(_on_play)
+	_play_btn.pressed.connect(func() -> void: _on_play(1))
 	_players_btn = _help_btn.duplicate() as Button
 	_players_btn.name = "players_btn"
 	_root.add_child(_players_btn)
@@ -110,6 +113,12 @@ func _ready() -> void:
 		_refresh_players_btn()
 		_save(_read()))
 	_refresh_players_btn()
+	_continue_btn = _help_btn.duplicate() as Button
+	_continue_btn.name = "continue_btn"
+	_root.add_child(_continue_btn)
+	_root.move_child(_continue_btn, _play_btn.get_index() + 1)
+	_continue_btn.pressed.connect(func() -> void: _on_play(checkpoint_level()))
+	_refresh_continue_btn()
 	_open_settings_btn.pressed.connect(_show_params)
 	# A browser tab can't close itself - get_tree().quit() just freezes the
 	# canvas - so the start screen drops Exit on the Web build, same as the
@@ -174,6 +183,7 @@ func open_start() -> void:
 	visible = true
 	get_tree().paused = true
 	_load()
+	_refresh_continue_btn()
 	_show(_root)
 
 
@@ -281,6 +291,20 @@ func _help_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 
 
+## Highest checkpoint level saved by game.gd (1 = none yet).
+static func checkpoint_level() -> int:
+	var c := ConfigFile.new()
+	if c.load(_PATH) != OK:
+		return 1
+	return maxi(1, int(c.get_value("progress", "checkpoint_level", 1)))
+
+
+func _refresh_continue_btn() -> void:
+	var lvl := checkpoint_level()
+	_continue_btn.visible = lvl > 1
+	_continue_btn.text = "Continue (Level %d)" % lvl
+
+
 func _refresh_players_btn() -> void:
 	_players_btn.text = "2 Players (turns)" if _players == 2 else "1 Player"
 
@@ -293,8 +317,9 @@ func _show_sound() -> void:
 	_show(_sound)
 
 
-func _on_play() -> void:
+func _on_play(start_level: int = 1) -> void:
 	var cfg := _read()
+	cfg["start_level"] = start_level
 	_save(cfg)
 	visible = false
 	get_tree().paused = false
@@ -429,7 +454,7 @@ func _save(cfg: Dictionary) -> void:
 	var c := ConfigFile.new()
 	c.load(_PATH)
 	for k in cfg:
-		if k == "volumes":
+		if k == "volumes" or k == "start_level":
 			continue   # SoundManager owns section "sound"
 		c.set_value("s", k, cfg[k])
 	c.save(_PATH)

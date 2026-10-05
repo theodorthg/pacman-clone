@@ -183,3 +183,9 @@ währenddessen. Offene Punkte sammelt ab jetzt `TODO.md`.
   feste Zellen). `draw_line(from, to, color, width)` — Farbe VOR Breite.
 - `class_name`-Dateien neu → erst `godot --headless --path . --import`, sonst
   kennt `--script` sie nicht.
+- **Wandernde Frucht** (`fruit_walker.gd`, v1.4): Sprite2D mit Gittersteuerung
+  wie die Geister, Zufallsabbiegen, `leave()` → BFS zum nächsten Tunnel.
+  Verweildauer `fruit_time_min/max` = 14–18 s.
+- **Continue** (v1.5): `Game._save_checkpoint()` schreibt beim Eintritt in einen
+  neuen Labyrinth-Block `progress/checkpoint_level`; `SettingsMenu` zeigt
+  „Continue (Level N)“ und startet mit `cfg["start_level"]`.

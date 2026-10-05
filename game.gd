@@ -96,6 +96,7 @@ const POINTS_POWER_PILL := 50
 const POINTS_GHOST_BASE := 200
 
 const _HIGHSCORE_PATH := "user://highscore.save"
+const _SETTINGS_PATH := "user://settings.cfg"
 
 ## Contact radii (px, centre to centre). Eating is generous; dying needs a real
 ## overlap. Being in the same 16px tile always counts.
@@ -512,6 +513,16 @@ func _arm_extra_lives() -> void:
 ## Play pressed on the start menu.
 func _on_settings_chosen(cfg: Dictionary) -> void:
 	_apply_config(cfg, true)
+	var start_level := int(cfg.get("start_level", 1))
+	if start_level > 1:
+		# "Continue": every player starts at the saved level (fresh score/lives)
+		current_level = start_level
+		for st in _ps:
+			st["level"] = start_level
+		_apply_maze_for_level()
+		_pills.reset_all()
+		_update_level_label()
+		_rebuild_level_icons()
 	_configuring = false
 	_show_ready(true)
 	_sfx("play_start")
@@ -777,6 +788,18 @@ func _tally_fruit(points: int, tex: Texture2D) -> void:
 		_fruit_tally[points] = [tex, 1]
 
 
+## Remember the first level of a new maze block as the "Continue" start point
+## (only ever moves forward).
+func _save_checkpoint(level: int) -> void:
+	if MazeGrid.maze_for_level(level) == MazeGrid.maze_for_level(level - 1):
+		return
+	var c := ConfigFile.new()
+	c.load(_SETTINGS_PATH)
+	if level > int(c.get_value("progress", "checkpoint_level", 1)):
+		c.set_value("progress", "checkpoint_level", level)
+		c.save(_SETTINGS_PATH)
+
+
 func _on_fruit_exited() -> void:
 	_fruit = null
 
@@ -1036,6 +1059,7 @@ func _level_clear_sequence() -> void:
 	# 3. level up + full reset
 	current_level += 1
 	_apply_maze_for_level()
+	_save_checkpoint(current_level)
 	_pills.reset_all()
 	_dots_eaten = 0
 	_time_since_dot = 0.0
