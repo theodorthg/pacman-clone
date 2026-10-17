@@ -5,7 +5,6 @@ globale CLAUDE.md „TODO.md pro Projekt“). Neueste Einträge oben.
 
 ## Offen
 
-- [ ] itch.io-Channel `web`: prüfen, dass „This file will be played in the browser“ noch gesetzt ist (butler behält die Einstellung normalerweise).
 - [ ] Im Arbeitsverzeichnis liegen fremde, nicht committete Änderungen
       (Dateirechte 644→755 bei fast allen Dateien, `.claude/launch.json`,
       untracked PDFs/Dossier-`.import`s) — prüfen/aufräumen. (Die fehlenden
@@ -36,6 +35,7 @@ Gemeinsam für die Serie (Vorlage: mario-clone v1.6–v1.9):
 
 ## Erledigt
 
+- [x] 2026-10-17 itch.io-Upload-Listen geprüft: nur die 4 butler-Channel-Uploads (+ Doku-PDFs), kein alter APK/ZIP; „played in the browser“ beim Web-Upload gesetzt.
 - [x] 2026-10-17 Release-Keystore war öffentlich eingecheckt (alle 5 Repos) → aus dem Index entfernt, `*.keystore`/`*.jks` ignoriert, neuer Schlüssel `~/keys/theodorthg-release.keystore` (außerhalb des Repos), Patch-Release mit neuem Schlüssel; alte von Hand hochgeladene itch.io-Dateien vom Nutzer gelöscht.
 - [x] 2026-10-05 v1.11 Mute-Button: runder Lautsprecher-Button links neben Pause (`mute_button.gd`, feste Position/Größe in `TouchControls._layout()`), Taste M und Pad-Select (`SoundManager.ensure_mute_action()`), Master-Bus-Mute, gespeichert in settings.cfg `[sound] muted`; Hilfe-Grafik „Keyboard / Gamepad“ zeigt ihn. Als Pflicht-Feature (Punkt 21) in die globale CLAUDE.md geschrieben.
 - [x] 2026-10-05 v1.11 Übungsmodus (Cheat wie bei mario-clone): im Startmenü Gamepad B, Y, X, A (A wird geschluckt) / Tastatur L E V E L S / Titel 5× antippen → Levelliste 1–99 (Farbe = Labyrinth); gestartete Läufe sind „cheated“: kein Highscore, kein Hall-of-Fame-Eintrag („PRACTICE RUN“-Hinweis), kein Continue-Checkpoint, HUD-Marke „PRACTICE“. Hilfeseite „Practice Mode“.
